@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://snippet_manager_db:5432/snippet-manager-db
+    username: ${SPRING_DATASOURCE_USERNAME_SNIPPET_MANAGER}
+    password: ${SPRING_DATASOURCE_PASSWORD_SNIPPET_MANAGER}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

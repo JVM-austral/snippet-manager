@@ -1,11 +1,10 @@
-package ingsis.auth
-
+package manager
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class AuthApplication
+class SnippetManagerApplication
 
 fun main(args: Array<String>) {
-    runApplication<AuthApplication>(*args)
+    runApplication<SnippetManagerApplication>(*args)
 }
