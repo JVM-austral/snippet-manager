@@ -7,4 +7,5 @@ class SnippetManagerApplication
 
 fun main(args: Array<String>) {
     runApplication<SnippetManagerApplication>(*args)
+
 }
