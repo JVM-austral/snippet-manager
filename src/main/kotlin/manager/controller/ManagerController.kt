@@ -6,6 +6,7 @@ import manager.inputs.CreateSnippetRequest
 import manager.inputs.UpdateSnippetRequest
 import manager.outputs.CreateSnippetResponse
 import manager.security.CurrentUserId
+import manager.service.Auth0Service
 import manager.service.ManagerService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/snippets")
 class ManagerController(
     private val snippetService: ManagerService,
+    private val auth0Service: Auth0Service,
 ) {
     @PostMapping
     fun createSnippet(
@@ -54,5 +56,11 @@ class ManagerController(
     ): ResponseEntity<List<Snippet>> {
         val result = snippetService.getAllSnippets(userId)
         return ResponseEntity.ok(result)
+    }
+    @GetMapping("/ping")
+    fun ping(): ResponseEntity<String> {
+        val token =auth0Service.getM2MToken()
+        return ResponseEntity.ok(token)
+
     }
 }

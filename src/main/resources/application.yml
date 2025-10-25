@@ -12,8 +12,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  auth0:
-    client-id: ${AUTH0_CLIENT_ID}
-    client-secret: ${AUTH0_CLIENT_SECRET}
-    domain: ${AUTH0_DOMAIN}
-    audience: ${AUTH0_AUDIENCE}
+auth0:
+  client-id: ${AUTH0_CLIENT_ID}
+  client-secret: ${AUTH0_CLIENT_SECRET}
+  domain: ${AUTH0_DOMAIN}
+  audience: ${AUTH0_AUDIENCE}
