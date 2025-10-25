@@ -57,10 +57,10 @@ class ManagerController(
         val result = snippetService.getAllSnippets(userId)
         return ResponseEntity.ok(result)
     }
+
     @GetMapping("/ping")
     fun ping(): ResponseEntity<String> {
-        val token =auth0Service.getM2MToken()
+        val token = auth0Service.getM2MToken()
         return ResponseEntity.ok(token)
-
     }
 }
