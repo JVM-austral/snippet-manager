@@ -22,7 +22,7 @@ class Auth0Service(
     private val audience: String,
 ) {
     fun getM2MToken(): String {
-        val url = URL("https://$domain/oauth/token")
+        val url = URL("$domain/oauth/token")
         val connection = url.openConnection() as HttpURLConnection
 
         connection.requestMethod = "POST"
