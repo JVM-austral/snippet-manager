@@ -26,7 +26,6 @@ class ManagerController(
         @CurrentUserId userId: String,
         @Valid @RequestBody request: CreateSnippetRequest,
     ): ResponseEntity<CreateSnippetResponse> {
-        
         val result = snippetService.createSnippet(request, userId)
         return ResponseEntity.ok(result)
     }

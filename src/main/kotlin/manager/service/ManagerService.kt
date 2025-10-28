@@ -59,7 +59,7 @@ class ManagerService(
         checkUserPermissions()
         validateSnippetExists(request.snippetId)
         validateUpdateSnippetRequest(request)
-        if(request.snippet != null) {
+        if (request.snippet != null) {
             val errors = validateSnippet(request.snippet)
             if (errors.isNotEmpty()) {
                 return CreateSnippetResponse(

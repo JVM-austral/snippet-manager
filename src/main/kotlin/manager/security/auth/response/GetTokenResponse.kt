@@ -1,4 +1,5 @@
 package manager.security.auth.response
 
-
-data class GetTokenResponse (val subject: String)
+data class GetTokenResponse(
+    val subject: String,
+)

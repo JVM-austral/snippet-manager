@@ -9,7 +9,6 @@ import org.springframework.web.method.support.ModelAndViewContainer
 
 @Component
 class CurrentUserIdResolver : HandlerMethodArgumentResolver {
-
     override fun supportsParameter(parameter: MethodParameter): Boolean =
         parameter.hasParameterAnnotation(CurrentUserId::class.java)
 
@@ -17,7 +16,7 @@ class CurrentUserIdResolver : HandlerMethodArgumentResolver {
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
-        binderFactory: org.springframework.web.bind.support.WebDataBinderFactory?
+        binderFactory: org.springframework.web.bind.support.WebDataBinderFactory?,
     ): Any? {
         val request = webRequest.getNativeRequest(HttpServletRequest::class.java)
         return request?.getAttribute("userId")
