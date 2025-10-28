@@ -33,7 +33,7 @@ class AuthUserIdInterceptor : HandlerInterceptor {
         val response: GetTokenResponse =
             WebClient
                 .builder()
-                .baseUrl("http://authorization_service:8080/")
+                .baseUrl("http://authorization_service:8000/")
                 .build()
                 .get()
                 .uri("/authentication/validate-user")
