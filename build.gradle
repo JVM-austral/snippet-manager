@@ -30,9 +30,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-    implementation("org.elasticsearch.client:elasticsearch-rest-client:8.9.0")
-    implementation("org.apache.httpcomponents:httpclient:4.5.14")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'
 	runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -1,13 +1,9 @@
 package manager.security
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import manager.security.auth.response.GetTokenResponse
-import org.apache.http.HttpHost
-import org.apache.http.util.EntityUtils
-import org.elasticsearch.client.Request
-import org.elasticsearch.client.RestClient
+import org.springframework.web.client.RestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
@@ -34,33 +30,21 @@ class AuthUserIdInterceptor : HandlerInterceptor {
     }
 
     private fun getUserInfo(token: String): String {
-        val restClient =
-            RestClient
-                .builder(
-                    HttpHost("authorization_service", 8080),
-                ).build()
+        val baseUrl = "http://authorization_service:8080"
 
-        try {
-            val request = Request("GET", "/authentication/validate-user")
-            val optionsBuilder =
-                org.elasticsearch.client.RequestOptions.DEFAULT
-                    .toBuilder()
-            optionsBuilder.addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            request.options = optionsBuilder.build()
-            val response = restClient.performRequest(request)
-            val responseBody =
-                EntityUtils
-                    .toString(response.entity)
+        val restClient = RestClient.create(baseUrl)
 
-            val mapper =
-                ObjectMapper()
-            val getTokenResponse =
-                mapper.readValue(responseBody, GetTokenResponse::class.java)
-                    ?: throw IllegalStateException("No se pudo obtener información del usuario desde Auth0")
+        val getTokenResponse = restClient.get()
+            .uri("/authentication/validate-user")
 
-            return getTokenResponse.subject
-        } finally {
-            restClient.close()
-        }
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+
+            .retrieve()
+
+            .body(GetTokenResponse::class.java)
+
+            ?: throw IllegalStateException("No se pudo obtener información del usuario desde Auth0")
+
+        return getTokenResponse.subject
     }
 }
