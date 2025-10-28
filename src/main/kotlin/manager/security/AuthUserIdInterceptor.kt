@@ -30,7 +30,7 @@ class AuthUserIdInterceptor : HandlerInterceptor {
     }
 
     private fun getUserInfo(token: String): String {
-        val fullAuthUrl = "http://authorization_service:8080/authentication/validate-user"
+        val fullAuthUrl = "http://localhost:8000/authentication/validate-user"
 
         val response: GetTokenResponse =
             WebClient
