@@ -1,6 +1,5 @@
 package manager.security
 
-import AuthUserIdInterceptor
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -17,6 +16,5 @@ class WebConfig(
     override fun addInterceptors(registry: org.springframework.web.servlet.config.annotation.InterceptorRegistry) {
         registry
             .addInterceptor(authUserIdInterceptor)
-            .addPathPatterns("/**") // or specify paths
     }
 }
