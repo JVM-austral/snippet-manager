@@ -18,7 +18,6 @@ import java.util.UUID
 @Service
 class ManagerService(
     private val auth0Service: Auth0Service,
-    private val webClient: WebClient,
     private val snippetRepository: SnippetRepositoryInterface,
 ) {
     fun createSnippet(
@@ -60,7 +59,15 @@ class ManagerService(
         checkUserPermissions()
         validateSnippetExists(request.snippetId)
         validateUpdateSnippetRequest(request)
-
+        if(request.snippet != null) {
+            val errors = validateSnippet(request.snippet)
+            if (errors.isNotEmpty()) {
+                return CreateSnippetResponse(
+                    snippetId = "",
+                    errorMessage = errors,
+                )
+            }
+        }
         val updatedSnippetId =
             snippetRepository.updateSnippet(
                 snippetId = request.snippetId,
@@ -111,7 +118,10 @@ class ManagerService(
     private fun validateSnippet(snippet: String): List<String> {
         val m2mToken = auth0Service.getM2MToken()
         val parseResponse: ParseResponse =
-            webClient
+            WebClient
+                .builder()
+                .baseUrl("http://snippet_engine_service:8080")
+                .build()
                 .post()
                 .uri("/engine/parse")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
