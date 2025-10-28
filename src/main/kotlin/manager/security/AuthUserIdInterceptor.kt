@@ -42,8 +42,9 @@ class AuthUserIdInterceptor : HandlerInterceptor {
 
         try {
             val request = Request("GET", "/authentication/validate-user")
-            request.addParameter(HttpHeaders.AUTHORIZATION, "Bearer $token")
-
+            val optionsBuilder = org.elasticsearch.client.RequestOptions.DEFAULT.toBuilder()
+            optionsBuilder.addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            request.options = optionsBuilder.build()
             val response = restClient.performRequest(request)
             val responseBody =
                 EntityUtils
