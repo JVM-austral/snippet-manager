@@ -30,13 +30,14 @@ class AuthUserIdInterceptor : HandlerInterceptor {
     }
 
     private fun getUserInfo(token: String): String {
+        val fullAuthUrl = "http://authorization_service:8000/authentication/validate-user"
+
         val response: GetTokenResponse =
             WebClient
                 .builder()
-                .baseUrl("http://authorization_service:8000/")
                 .build()
                 .get()
-                .uri("/authentication/validate-user")
+                .uri(fullAuthUrl)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .retrieve()
                 .bodyToMono(GetTokenResponse::class.java)
