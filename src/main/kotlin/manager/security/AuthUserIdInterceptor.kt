@@ -16,7 +16,11 @@ class AuthUserIdInterceptor : HandlerInterceptor {
         val authHeader = request.getHeader("Authorization") ?: return true
         val token = authHeader.removePrefix("Bearer ").trim()
 
+        println("PRINTLN DEL TOKEN EN INTERCEPTOR$token")
+
         val userId = getUserInfo(token)
+
+        println("PRINTLN DEL USERID EN INTERCEPTOR$userId")
 
         request.setAttribute("userId", userId)
 

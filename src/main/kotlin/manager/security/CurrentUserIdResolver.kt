@@ -19,6 +19,7 @@ class CurrentUserIdResolver : HandlerMethodArgumentResolver {
         binderFactory: org.springframework.web.bind.support.WebDataBinderFactory?,
     ): Any? {
         val request = webRequest.getNativeRequest(HttpServletRequest::class.java)
+        println("PRINTLN EN EL RESOLVER" + request?.getAttribute("userId"))
         return request?.getAttribute("userId")
             ?: throw IllegalStateException("No se encontró el userId en la request")
     }
