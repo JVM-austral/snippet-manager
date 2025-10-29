@@ -69,10 +69,19 @@ class AuthUserIdInterceptor : HandlerInterceptor {
                     .baseUrl("http://authorization_service:8080")
                     .build()
 
+            val uri = "/authentication/validate-user"
+
+            println(
+                authorizationClient
+                    .get()
+                    .uri(uri)
+                    .toString(),
+            )
+
             val response: GetTokenResponse =
                 authorizationClient
                     .get()
-                    .uri("/authentication/validate-user")
+                    .uri(uri)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                     .retrieve()
                     .body(GetTokenResponse::class.java)!!
