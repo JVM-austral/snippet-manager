@@ -25,7 +25,6 @@ class ManagerService(
         userId: String,
     ): CreateSnippetResponse {
         validateLanguageAndVersion(request.language, request.version)
-        validateUserUUID(userId)
         validateUser()
         val errors = validateSnippet(request.snippet)
         if (errors.isNotEmpty()) {

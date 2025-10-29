@@ -19,9 +19,7 @@ class AuthUserIdInterceptor(
 
         val userId = validateTokenService.getUserInfo(token)
 
-        val cleanUserId = userId.substringAfter("|")
-
-        request.setAttribute("userId", cleanUserId)
+        request.setAttribute("userId", userId)
 
         return true
     }
