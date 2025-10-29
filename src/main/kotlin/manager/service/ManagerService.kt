@@ -121,7 +121,7 @@ class ManagerService(
         val client =
             RestClient
                 .builder()
-                .baseUrl("http://authorization_service:8080")
+                .baseUrl("http://authorization-service:8080")
                 .build()
 
         val parseResponse: ParseResponse =
