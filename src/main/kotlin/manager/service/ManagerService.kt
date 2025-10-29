@@ -10,7 +10,7 @@ import manager.service.engine.response.ParseResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.client.RestClient
 import org.springframework.web.server.ResponseStatusException
 import java.util.Locale.getDefault
 import java.util.UUID
@@ -117,18 +117,21 @@ class ManagerService(
 
     private fun validateSnippet(snippet: String): List<String> {
         val m2mToken = auth0Service.getM2MToken()
-        val parseResponse: ParseResponse =
-            WebClient
+
+        val client =
+            RestClient
                 .builder()
-                .baseUrl("http://snippet_engine_service:8080")
+                .baseUrl("http://authorization_service:8080")
                 .build()
+
+        val parseResponse: ParseResponse =
+            client
                 .post()
                 .uri("/engine/parse")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
-                .bodyValue(mapOf("code" to snippet)) //  body del request
-                .retrieve() //  hace la llamada
-                .bodyToMono(ParseResponse::class.java) //  pasa la respuesta a ParseResponse
-                .block() // espera hasta q responda (sincrónica)
+                .body { (mapOf("code" to snippet)) }
+                .retrieve()
+                .body(ParseResponse::class.java)
                 ?: throw ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Parser service returned empty response",
