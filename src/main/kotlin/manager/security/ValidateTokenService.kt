@@ -7,7 +7,6 @@ import org.springframework.web.client.RestClient
 
 @Service
 class ValidateTokenService {
-
     fun getUserInfo(token: String): String {
         try {
             val authorizationClient =
