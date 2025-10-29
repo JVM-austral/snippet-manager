@@ -1,9 +1,14 @@
 package manager.security
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import manager.security.auth.response.GetTokenResponse
-import org.springframework.web.client.RestClient
+import org.apache.http.HttpHost
+import org.apache.http.util.EntityUtils
+import org.elasticsearch.client.Request
+import org.elasticsearch.client.RequestOptions
+import org.elasticsearch.client.RestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
@@ -29,22 +34,37 @@ class AuthUserIdInterceptor : HandlerInterceptor {
         return true
     }
 
+    private fun getRestClient(): RestClient =
+        RestClient
+            .builder(
+                HttpHost("authorization_service", 8080),
+            ).build()
+
     private fun getUserInfo(token: String): String {
-        val baseUrl = "http://authorization_service:8080"
+        val restClient = getRestClient()
+        try {
+            val request = Request("GET", "/authentication/validate-user")
 
-        val restClient = RestClient.create(baseUrl)
+            val options =
+                RequestOptions.DEFAULT
+                    .toBuilder()
+                    .addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .build()
+            request.options = options
 
-        val getTokenResponse = restClient.get()
-            .uri("/authentication/validate-user")
+            val response = restClient.performRequest(request)
+            val status = response.statusLine.statusCode
 
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-
-            .retrieve()
-
-            .body(GetTokenResponse::class.java)
-
-            ?: throw IllegalStateException("No se pudo obtener información del usuario desde Auth0")
-
-        return getTokenResponse.subject
+            if (status == 200) {
+                val body = EntityUtils.toString(response.entity)
+                val tokenResponse = ObjectMapper().readValue(body, GetTokenResponse::class.java)
+                return tokenResponse.subject
+            } else {
+                val body = response.entity?.let { EntityUtils.toString(it) } ?: ""
+                throw RuntimeException("Unexpected response: $status $body")
+            }
+        } finally {
+            restClient.close()
+        }
     }
 }
