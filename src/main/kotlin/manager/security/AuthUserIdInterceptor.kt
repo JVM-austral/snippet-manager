@@ -52,6 +52,9 @@ class AuthUserIdInterceptor : HandlerInterceptor {
                     .build()
             request.options = options
 
+            println(request)
+            println("Bearer $token")
+
             val response = restClient.performRequest(request)
             val status = response.statusLine.statusCode
 
