@@ -2,7 +2,7 @@ package manager.security
 
 import manager.security.auth.response.GetTokenResponse
 import org.springframework.http.HttpHeaders
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
@@ -11,7 +11,7 @@ class ValidateTokenService {
     private val authorizationClient: RestClient by lazy {
         RestClient
             .builder()
-            .requestFactory(HttpComponentsClientHttpRequestFactory())
+            .requestFactory(JdkClientHttpRequestFactory())
             .baseUrl("http://authorization_service:8080")
             .build()
     }
