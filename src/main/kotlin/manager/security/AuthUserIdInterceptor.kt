@@ -8,10 +8,11 @@ import org.apache.http.HttpHost
 import org.apache.http.util.EntityUtils
 import org.elasticsearch.client.Request
 import org.elasticsearch.client.RequestOptions
-import org.elasticsearch.client.RestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
+import org.springframework.web.client.RestClient
 import org.springframework.web.servlet.HandlerInterceptor
+import org.elasticsearch.client.RestClient as ESRestClient
 
 @Component
 class AuthUserIdInterceptor : HandlerInterceptor {
@@ -23,24 +24,20 @@ class AuthUserIdInterceptor : HandlerInterceptor {
         val authHeader = request.getHeader("Authorization") ?: return true
         val token = authHeader.removePrefix("Bearer ").trim()
 
-        println("PRINTLN DEL TOKEN EN INTERCEPTOR$token")
-
-        val userId = getUserInfo(token)
-
-        println("PRINTLN DEL USERID EN INTERCEPTOR$userId")
+        val userId = getUserInfo2(token)
 
         request.setAttribute("userId", userId)
 
         return true
     }
 
-    private fun getRestClient(): RestClient =
-        RestClient
+    private fun getRestClient(): ESRestClient =
+        ESRestClient
             .builder(
-                HttpHost("authorization_service", 8080),
+                HttpHost("asset_service", 8080),
             ).build()
 
-    private fun getUserInfo(token: String): String {
+    private fun getUserInfo1(token: String): String {
         val restClient = getRestClient()
         try {
             val request = Request("GET", "/authentication/validate-user")
@@ -53,7 +50,6 @@ class AuthUserIdInterceptor : HandlerInterceptor {
             request.options = options
 
             println(request)
-            println("Bearer $token")
 
             val response = restClient.performRequest(request)
             val status = response.statusLine.statusCode
@@ -68,6 +64,28 @@ class AuthUserIdInterceptor : HandlerInterceptor {
             }
         } finally {
             restClient.close()
+        }
+    }
+
+    fun getUserInfo2(token: String): String {
+        try {
+            val authorizationClient =
+                RestClient
+                    .builder()
+                    .baseUrl("http://authorization_service:8080")
+                    .build()
+
+            val response: GetTokenResponse =
+                authorizationClient
+                    .get()
+                    .uri("/authentication/validate-user")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .retrieve()
+                    .body(GetTokenResponse::class.java)!!
+
+            return response.subject
+        } catch (e: Exception) {
+            throw RuntimeException("Error validating user: ${e.message}")
         }
     }
 }
