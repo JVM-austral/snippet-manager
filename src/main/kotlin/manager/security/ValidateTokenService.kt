@@ -7,17 +7,19 @@ import org.springframework.web.client.RestClient
 
 @Service
 class ValidateTokenService {
+    private val authorizationClient: RestClient by lazy {
+        RestClient
+            .builder()
+            .baseUrl("http://authorization_service:8080")
+            .build()
+    }
+
     fun getUserInfo(token: String): String {
         try {
-            val authorizationClient =
-                RestClient
-                    .builder()
-                    .baseUrl("http://authorization_service:8080/authentication/validate-user")
-                    .build()
-
             val response: GetTokenResponse =
                 authorizationClient
                     .get()
+                    .uri("/authentication/validate-user")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                     .retrieve()
                     .body(GetTokenResponse::class.java)!!
