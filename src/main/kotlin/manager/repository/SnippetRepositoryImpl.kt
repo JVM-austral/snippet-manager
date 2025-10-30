@@ -11,7 +11,7 @@ class SnippetRepositoryImpl(
 ) : SnippetRepositoryInterface {
     override fun saveSnippet(
         name: String,
-        code: String,
+        bucketId: String,
         language: String,
         description: String,
         version: String,
@@ -23,7 +23,7 @@ class SnippetRepositoryImpl(
                 description = description,
                 language = Languages.valueOf(language),
                 version = version,
-                code = code,
+                bucketId = bucketId,
                 userId = userId,
             )
 
@@ -40,7 +40,7 @@ class SnippetRepositoryImpl(
     override fun updateSnippet(
         snippetId: String,
         name: String?,
-        code: String?,
+        bucketId: String?,
         language: String?,
         description: String?,
         version: String?,
@@ -48,7 +48,7 @@ class SnippetRepositoryImpl(
         val snippet = jpaRepository.findByIdOrNull(snippetId) ?: throw Exception("Snippet not found")
 
         name?.let { snippet.name = it }
-        code?.let { snippet.code = it }
+        bucketId?.let { snippet.bucketId = it }
         language?.let { snippet.language = Languages.valueOf(it) }
         description?.let { snippet.description = it }
         version?.let { snippet.version = it }

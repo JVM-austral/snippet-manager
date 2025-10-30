@@ -1,6 +1,7 @@
 package manager.controller
 
 import jakarta.validation.Valid
+import manager.common.interceptor.CurrentUserToken
 import manager.entity.Snippet
 import manager.inputs.CreateSnippetRequest
 import manager.inputs.UpdateSnippetRequest
@@ -24,18 +25,20 @@ class ManagerController(
     @PostMapping
     fun createSnippet(
         @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
         @Valid @RequestBody request: CreateSnippetRequest,
     ): ResponseEntity<CreateSnippetResponse> {
-        val result = snippetService.createSnippet(request, userId)
+        val result = snippetService.createSnippet(request, userId, userToken)
         return ResponseEntity.ok(result)
     }
 
     @PatchMapping
     fun updateSnippet(
         @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
         @Valid @RequestBody request: UpdateSnippetRequest,
     ): ResponseEntity<CreateSnippetResponse> {
-        val result = snippetService.updateSnippet(request, userId)
+        val result = snippetService.updateSnippet(request, userId, userToken)
         return ResponseEntity.ok(result)
     }
 

@@ -5,7 +5,7 @@ import manager.entity.Snippet
 interface SnippetRepositoryInterface {
     fun saveSnippet(
         name: String,
-        code: String,
+        bucketId: String,
         language: String,
         description: String,
         version: String,
@@ -19,7 +19,7 @@ interface SnippetRepositoryInterface {
     fun updateSnippet(
         snippetId: String,
         name: String?,
-        code: String?,
+        bucketId: String?,
         language: String?,
         description: String?,
         version: String?,

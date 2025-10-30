@@ -1,6 +1,37 @@
-version: "3.9"
-
 services:
+  authorization_service:
+    container_name: "authorization_service"
+    image: ghcr.io/jvm-austral/auth-microservice:latest
+    ports:
+      - "${SERVER_PORT_AUTHORIZATION}:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL_AUTHORIZATION}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME_AUTHORIZATION}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD_AUTHORIZATION}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO_AUTHORIZATION}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE_AUTHORIZATION}
+    depends_on:
+      - authorization_db
+    networks:
+      microservices-network:
+        aliases:
+          - authorization-service
+
+  authorization_db:
+    container_name: authorization_db
+    image: postgres:16
+    ports:
+      - "${POSTGRES_PORT_AUTHORIZATION}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER_AUTHORIZATION}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_AUTHORIZATION}
+      - POSTGRES_DB=${POSTGRES_DB_AUTHORIZATION}
+      - POSTGRES_PORT_AUTHORIZATION=${POSTGRES_PORT_AUTHORIZATION}
+    volumes:
+      - authorization_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
   snippet_manager_service:
     container_name: "snippet_manager_service"
     build:
@@ -20,6 +51,8 @@ services:
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
     depends_on:
       - snippet_manager_db
+    networks:
+      - microservices-network
 
   snippet_manager_db:
     container_name: snippet_manager_db
@@ -31,7 +64,95 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_SNIPPET_MANAGER}
       - POSTGRES_DB=${POSTGRES_DB_SNIPPET_MANAGER}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - snippet_manager_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  snippet_engine_service:
+    container_name: "snippet_engine_service"
+    image: ghcr.io/jvm-austral/snippet-engine:latest
+    ports:
+      - "${SPRING_PORT_SNIPPET_ENGINE}:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL_SNIPPET_ENGINE}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME_SNIPPET_ENGINE}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD_SNIPPET_ENGINE}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO_SNIPPET_ENGINE}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE_SNIPPET_ENGINE}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+    depends_on:
+      - snippet_engine_db
+    networks:
+      microservices-network:
+        aliases:
+          - snippet-engine-service
+
+  snippet_engine_db:
+    container_name: snippet_engine_db
+    image: postgres:16
+    ports:
+      - "${POSTGRES_PORT_SNIPPET_ENGINE}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER_SNIPPET_ENGINE}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_SNIPPET_ENGINE}
+      - POSTGRES_DB=${POSTGRES_DB_SNIPPET_ENGINE}
+    volumes:
+      - snippet_engine_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  asset_service:
+    container_name: "asset_service"
+    image: ghcr.io/austral-ingsis/snippet-asset-service:latest
+    expose:
+      - "8080"
+    environment:
+      - AZURE_HOST=http://azurite
+      - NEW_RELIC_APP_NAME=asset-service
+      - NEW_RELIC_AGENT_ENABLED=false
+    depends_on:
+      - azurite
+    networks:
+      microservices-network:
+        aliases:
+          - asset-service
+
+  azurite:
+    container_name: "azurite"
+    image: mcr.microsoft.com/azure-storage/azurite
+    hostname: azurite
+    restart: always
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - blob:/workspace
+    networks:
+      - microservices-network
+
+  nginx:
+    container_name: nginx_reverse_proxy
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - authorization_service
+      - snippet_manager_service
+      - snippet_engine_service
+      - asset_service
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    external: true
 
 volumes:
-  pgdata:
+  authorization_data:
+  snippet_manager_data:
+  snippet_engine_data:
+  blob:

@@ -4,5 +4,5 @@ enum class Languages(
     val displayName: String,
     val versions: List<String>,
 ) {
-    PRINTSCRIPT("PrintScript", listOf("1.0", "1.1")),
+    PRINTSCRIPT("PrintScript", listOf("V1", "V2")),
 }

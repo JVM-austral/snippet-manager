@@ -18,7 +18,7 @@ data class Snippet(
     @Enumerated(EnumType.STRING)
     var language: Languages,
     var version: String,
-    var code: String,
+    var bucketId: String,
     var userId: String,
     var creationDate: LocalDateTime = LocalDateTime.now(),
 )
