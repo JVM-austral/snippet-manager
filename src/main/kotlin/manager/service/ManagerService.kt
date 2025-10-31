@@ -240,17 +240,18 @@ class ManagerService(
                 .baseUrl("http://authorization-service:8080")
                 .build()
         try {
-            val response =authorizationClient
-                .post()
-                .uri("/snippet-permissions/grant-write-access")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .body(
-                    PermissionRequest(
-                        userId = userId,
-                        snippetId = snippetId,
-                    ),
-                ).retrieve()
-                .body(SnippetPermisesResponse::class.java)
+            val response =
+                authorizationClient
+                    .post()
+                    .uri("/snippet-permissions/grant-write-access")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .body(
+                        PermissionRequest(
+                            userId = userId,
+                            snippetId = snippetId,
+                        ),
+                    ).retrieve()
+                    .body(SnippetPermisesResponse::class.java)
 
             return response!!
         } catch (e: HttpClientErrorException) {
