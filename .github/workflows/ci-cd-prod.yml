@@ -1,10 +1,12 @@
 permissions:
   contents: read
   packages: write
-name: Java CI
+name: Java CI/CD - Prod
 
 on:
   push:
+    branches:
+      - prod
 
 jobs:
   build:
@@ -21,6 +23,7 @@ jobs:
         run: chmod +x ./gradlew
       - name: Build with Gradle
         run: ./gradlew build
+
   push_to_registry:
     needs: build
     runs-on: ubuntu-latest
@@ -38,6 +41,7 @@ jobs:
         id: short-sha
         with:
           length: 8
+
       - name: Set lowercase org and repo
         run: |
           ORG=$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
@@ -45,10 +49,8 @@ jobs:
           echo "ORG_NAME=$ORG" >> $GITHUB_ENV
           echo "REPO_NAME=$REPO" >> $GITHUB_ENV
 
-
       - name: Set up Docker Buildx (multi-platform / builder)
         uses: docker/setup-buildx-action@v2
-
 
       - name: Login to GHCR
         uses: docker/login-action@v2
@@ -65,19 +67,19 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.ORG_NAME }}/${{ env.REPO_NAME }}:latest
-            ghcr.io/${{ env.ORG_NAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
+            ghcr.io/${{ env.ORG_NAME }}/${{ env.REPO_NAME }}:prod-latest
+            ghcr.io/${{ env.ORG_NAME }}/${{ env.REPO_NAME }}:prod-${{ github.sha }}
+
   deploy:
     needs: push_to_registry
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
-      - name: Deploy to VM
+      - name: Deploy to Prod VM
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
+          host: ${{ secrets.VM_HOST_PROD }}
+          username: ${{ secrets.VM_USER_PROD }}
+          key: ${{ secrets.VM_SSH_KEY_PROD }}
           script: |
             cd ~/infrastructure
-            ./deploy.sh
+            ./deploy.prod.sh
