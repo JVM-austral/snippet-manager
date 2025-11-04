@@ -2,14 +2,18 @@ package manager.service
 
 import manager.entity.Languages
 import manager.entity.Snippet
-import manager.inputs.CreateSnippetRequest
-import manager.inputs.ParseRequest
-import manager.inputs.PermissionRequest
-import manager.inputs.UpdateSnippetRequest
-import manager.outputs.CheckPermisesResponse
-import manager.outputs.CreateSnippetResponse
-import manager.outputs.SnippetPermisesResponse
-import manager.repository.SnippetRepositoryInterface
+import manager.inputs.snippet.CreateSnippetRequest
+import manager.inputs.snippet.ParseRequest
+import manager.inputs.snippet.PermissionRequest
+import manager.inputs.snippet.RunSnippetInEngineRequest
+import manager.inputs.snippet.RunSnippetRequest
+import manager.inputs.snippet.ShareSnippetRequest
+import manager.inputs.snippet.UpdateSnippetRequest
+import manager.outputs.snippet.CheckPermisesResponse
+import manager.outputs.snippet.CreateSnippetResponse
+import manager.outputs.snippet.RunSnippetResponse
+import manager.outputs.snippet.SnippetPermisesResponse
+import manager.repository.snippet.SnippetRepositoryInterface
 import manager.service.engine.response.ParseResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -40,16 +44,22 @@ class ManagerService(
                 errorMessage = errors,
             )
         }
-        saveOrUpdateSnippetInBucket(request.name, request.snippet, userId)
+
         val result =
             snippetRepository.saveSnippet(
-                bucketId = "$userId/${request.name}",
+                bucketId = "",
                 language = request.language.uppercase(getDefault()),
                 name = request.name,
                 description = request.description,
                 version = request.version,
                 userId = userId,
             )
+        saveOrUpdateSnippetInBucket(result, request.snippet, userId)
+
+        snippetRepository.updateBucketIdForSnippets(
+            snippetId = result,
+            newBucketId = "${userId.substringAfter("|")}/$result",
+        )
         grantWritePermises(userToken, userId, result)
         return CreateSnippetResponse(
             snippetId = result,
@@ -77,12 +87,11 @@ class ManagerService(
             snippetRepository.updateSnippet(
                 snippetId = request.snippetId,
                 name = request.name,
-                bucketId = request.snippet,
                 language = request.language.uppercase(getDefault()),
                 description = request.description,
                 version = request.version,
             )
-        saveOrUpdateSnippetInBucket(request.name, request.snippet, userId)
+        saveOrUpdateSnippetInBucket(updatedSnippetId, request.snippet, userId)
         return CreateSnippetResponse(
             snippetId = updatedSnippetId,
             errorMessage = emptyList(),
@@ -93,29 +102,73 @@ class ManagerService(
         snippetId: String,
         userId: String,
     ): Snippet {
-        validateUserUUID(userId)
-        validateUserUUID(snippetId)
-        val snippet =
+        var snippet =
             snippetRepository.getSnippetById(snippetId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
+        val code =
+            assetService.getAsset(
+                userId.substringAfter("|"),
+                snippet.id,
+            )
+        snippet.bucketId = code
         return snippet
     }
 
     fun getAllSnippets(
         userId: String,
     ): List<Snippet> {
-        validateUserUUID(userId)
         val snippets =
             snippetRepository.getAllSnippetsByUserId(userId)
+
+        for (snippet in snippets) {
+            val code =
+                assetService.getAsset(
+                    userId.substringAfter("|"),
+                    snippet.id,
+                )
+            snippet.bucketId = code
+        }
+
         return snippets
     }
 
-    private fun validateUserUUID(id: String) {
+    private fun validateUUID(id: String) {
         try {
             UUID.fromString(id)
         } catch (e: IllegalArgumentException) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid UUID format")
         }
+    }
+
+    fun shareSnippet(
+        input: ShareSnippetRequest,
+        userId: String,
+        userToken: String,
+    ) {
+        checkWritePermises(userToken, userId, input.snippetId)
+        validateSnippetExists(input.snippetId)
+        grantReadPermises(userToken, input.targetUserId, input.snippetId)
+    }
+
+    fun runSnippet(
+        input: RunSnippetRequest,
+        userId: String,
+        userToken: String,
+    ): RunSnippetResponse {
+        val snippet = validateSnippetExists(input.snippetId)
+        checkReadPermises(userToken, userId, input.snippetId)
+        println(
+            "/v1/asset/" + snippet.bucketId.substringAfter("|") +
+                snippet.version +
+                snippet.language.name +
+                input.varInputs,
+        )
+        return runSnippet(
+            "/v1/asset/" + snippet.bucketId.substringAfter("|"),
+            snippet.version,
+            snippet.language.name,
+            input.varInputs,
+        )
     }
 
     private fun validateSnippet(
@@ -223,10 +276,51 @@ class ManagerService(
         }
     }
 
-    private fun validateSnippetExists(snippetId: String) {
+    private fun validateSnippetExists(snippetId: String): Snippet {
         val snippet =
             snippetRepository.getSnippetById(snippetId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
+        return snippet
+    }
+
+    fun grantReadPermises(
+        token: String,
+        userId: String,
+        snippetId: String,
+    ): SnippetPermisesResponse {
+        val authorizationClient: RestClient =
+            RestClient
+                .builder()
+                .baseUrl("http://authorization-service:8080")
+                .build()
+        try {
+            val response =
+                authorizationClient
+                    .post()
+                    .uri("/snippet-permissions/grant-read-access")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .body(
+                        PermissionRequest(
+                            userId = userId,
+                            snippetId = snippetId,
+                        ),
+                    ).retrieve()
+                    .body(SnippetPermisesResponse::class.java)
+
+            return response!!
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Error granting permissions: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error granting read permissions: ${e.message}",
+                e,
+            )
+        }
     }
 
     fun grantWritePermises(
@@ -240,17 +334,18 @@ class ManagerService(
                 .baseUrl("http://authorization-service:8080")
                 .build()
         try {
-            val response =authorizationClient
-                .post()
-                .uri("/snippet-permissions/grant-write-access")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-                .body(
-                    PermissionRequest(
-                        userId = userId,
-                        snippetId = snippetId,
-                    ),
-                ).retrieve()
-                .body(SnippetPermisesResponse::class.java)
+            val response =
+                authorizationClient
+                    .post()
+                    .uri("/snippet-permissions/grant-write-access")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .body(
+                        PermissionRequest(
+                            userId = userId,
+                            snippetId = snippetId,
+                        ),
+                    ).retrieve()
+                    .body(SnippetPermisesResponse::class.java)
 
             return response!!
         } catch (e: HttpClientErrorException) {
@@ -311,6 +406,115 @@ class ManagerService(
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Error checking write permissions: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    private fun checkReadPermises(
+        token: String,
+        userId: String,
+        snippetId: String,
+    ) {
+        val authorizationClient: RestClient =
+            RestClient
+                .builder()
+                .baseUrl("http://authorization-service:8080")
+                .build()
+
+        try {
+            val response: CheckPermisesResponse? =
+                authorizationClient
+                    .post()
+                    .uri("/snippet-permissions/validate-read-access")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .body(
+                        PermissionRequest(
+                            userId = userId,
+                            snippetId = snippetId,
+                        ),
+                    ).retrieve()
+                    .body(CheckPermisesResponse::class.java)
+
+            response?.allowed?.let {
+                if (!it) {
+                    throw ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "User does not have read permissions for this snippet.",
+                    )
+                }
+            }
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Error checking permissions: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error checking read permissions: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    private fun runSnippet(
+        path: String,
+        version: String,
+        language: String,
+        inputs: List<String>,
+    ): RunSnippetResponse {
+        val m2mToken = auth0Service.getM2MToken()
+
+        val client =
+            RestClient
+                .builder()
+                .baseUrl("http://snippet-engine-service:8080")
+                .build()
+
+        try {
+            val executeResponse: RunSnippetResponse =
+                client
+                    .post()
+                    .uri("/engine/execute")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
+                    .body(
+                        RunSnippetInEngineRequest(
+                            assetPath = path,
+                            language = language,
+                            version = version,
+                            varInputs = inputs,
+                        ),
+                    ).retrieve()
+                    .body(RunSnippetResponse::class.java)
+                    ?: throw ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Runner service returned empty response",
+                    )
+            return executeResponse
+        } catch (e: HttpClientErrorException.BadRequest) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Snippet validation failed: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Runner service error: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpServerErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Runner service unavailable: ${e.message}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error calling Runner service: ${e.message}",
                 e,
             )
         }

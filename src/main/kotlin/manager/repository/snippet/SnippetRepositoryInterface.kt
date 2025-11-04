@@ -1,4 +1,4 @@
-package manager.repository
+package manager.repository.snippet
 
 import manager.entity.Snippet
 
@@ -19,9 +19,13 @@ interface SnippetRepositoryInterface {
     fun updateSnippet(
         snippetId: String,
         name: String?,
-        bucketId: String?,
         language: String?,
         description: String?,
         version: String?,
     ): String
+
+    fun updateBucketIdForSnippets(
+        snippetId: String,
+        newBucketId: String,
+    )
 }

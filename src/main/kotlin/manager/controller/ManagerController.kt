@@ -3,9 +3,12 @@ package manager.controller
 import jakarta.validation.Valid
 import manager.common.interceptor.CurrentUserToken
 import manager.entity.Snippet
-import manager.inputs.CreateSnippetRequest
-import manager.inputs.UpdateSnippetRequest
-import manager.outputs.CreateSnippetResponse
+import manager.inputs.snippet.CreateSnippetRequest
+import manager.inputs.snippet.RunSnippetRequest
+import manager.inputs.snippet.ShareSnippetRequest
+import manager.inputs.snippet.UpdateSnippetRequest
+import manager.outputs.snippet.CreateSnippetResponse
+import manager.outputs.snippet.RunSnippetResponse
 import manager.security.CurrentUserId
 import manager.service.ManagerService
 import org.springframework.http.ResponseEntity
@@ -57,5 +60,25 @@ class ManagerController(
     ): ResponseEntity<List<Snippet>> {
         val result = snippetService.getAllSnippets(userId)
         return ResponseEntity.ok(result)
+    }
+
+    @PostMapping("/share")
+    fun shareSnippet(
+        @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
+        @Valid @RequestBody request: ShareSnippetRequest,
+    ): ResponseEntity<String> {
+        snippetService.shareSnippet(request, userId, userToken)
+        return ResponseEntity.ok("Snippet shared successfully")
+    }
+
+    @PostMapping("/run")
+    fun runSnippet(
+        @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
+        @Valid @RequestBody request: RunSnippetRequest,
+    ): ResponseEntity<RunSnippetResponse> {
+        val output = snippetService.runSnippet(request, userId, userToken)
+        return ResponseEntity.ok(output)
     }
 }

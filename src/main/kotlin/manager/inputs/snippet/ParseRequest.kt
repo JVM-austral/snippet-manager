@@ -1,4 +1,4 @@
-package manager.inputs
+package manager.inputs.snippet
 
 data class ParseRequest(
     val code: String,

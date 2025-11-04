@@ -1,4 +1,4 @@
-package manager.outputs
+package manager.outputs.snippet
 
 import manager.entity.Snippet
 

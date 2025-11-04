@@ -1,4 +1,5 @@
-package manager.repository
+package manager.repository.snippet
+
 import manager.entity.Snippet
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository

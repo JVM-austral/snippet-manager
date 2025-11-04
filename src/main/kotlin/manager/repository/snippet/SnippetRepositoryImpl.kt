@@ -1,4 +1,4 @@
-package manager.repository
+package manager.repository.snippet
 
 import manager.entity.Languages
 import manager.entity.Snippet
@@ -40,7 +40,6 @@ class SnippetRepositoryImpl(
     override fun updateSnippet(
         snippetId: String,
         name: String?,
-        bucketId: String?,
         language: String?,
         description: String?,
         version: String?,
@@ -48,7 +47,6 @@ class SnippetRepositoryImpl(
         val snippet = jpaRepository.findByIdOrNull(snippetId) ?: throw Exception("Snippet not found")
 
         name?.let { snippet.name = it }
-        bucketId?.let { snippet.bucketId = it }
         language?.let { snippet.language = Languages.valueOf(it) }
         description?.let { snippet.description = it }
         version?.let { snippet.version = it }
@@ -56,5 +54,14 @@ class SnippetRepositoryImpl(
         jpaRepository.save(snippet)
 
         return snippet.id
+    }
+
+    override fun updateBucketIdForSnippets(
+        snippetId: String,
+        newBucketId: String,
+    ) {
+        val snippet = jpaRepository.findByIdOrNull(snippetId) ?: throw Exception("Snippet not found")
+        snippet.bucketId = newBucketId
+        jpaRepository.save(snippet)
     }
 }
