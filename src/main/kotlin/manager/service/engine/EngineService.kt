@@ -145,7 +145,7 @@ class EngineService(
         assetPath: String,
         varInputs: List<String>,
         expectedOutputs: List<String>,
-    ) : TestResponse {
+    ): TestResponse {
         val m2mToken = auth0Service.getM2MToken()
 
         val client =

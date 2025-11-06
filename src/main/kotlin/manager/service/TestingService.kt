@@ -53,13 +53,14 @@ class TestingService(
             userId = userId,
             snippetId = snippet.id,
         )
-        val response = engineService.runTest(
-            assetPath = snippet.bucketId,
-            version = snippet.version,
-            language = snippet.language.name,
-            varInputs =  test.input,
-            expectedOutputs = test.output,
-        )
+        val response =
+            engineService.runTest(
+                assetPath = snippet.bucketId,
+                version = snippet.version,
+                language = snippet.language.name,
+                varInputs = test.input,
+                expectedOutputs = test.output,
+            )
         if (response.passed) {
             return "Test passed successfully"
         } else {
