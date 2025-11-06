@@ -17,6 +17,14 @@ interface SnippetRepositoryInterface {
 
     fun getAllSnippetsByUserId(userId: String): List<Snippet>
 
+    fun getPaginatedSnippetsByUserId(
+        userId: String,
+        page: Int,
+        pageSize: Int,
+    ): List<Snippet>
+
+    fun countSnippetsByUserId(userId: String): Int
+
     fun updateSnippet(
         snippetId: String,
         name: String?,
@@ -33,5 +41,9 @@ interface SnippetRepositoryInterface {
     fun setSnippetState(
         snippetId: String,
         state: CompilantState,
+    )
+
+    fun deleteSnippet(
+        snippetId: String,
     )
 }

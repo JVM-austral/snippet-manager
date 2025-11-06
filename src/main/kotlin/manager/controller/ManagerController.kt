@@ -8,16 +8,19 @@ import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
 import manager.inputs.snippet.UpdateSnippetRequest
 import manager.outputs.snippet.CreateSnippetResponse
+import manager.outputs.snippet.GetPaginatedSnippetsResponse
 import manager.outputs.snippet.RunSnippetResponse
 import manager.security.CurrentUserId
 import manager.service.ManagerService
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -57,8 +60,10 @@ class ManagerController(
     @GetMapping
     fun getAllSnippets(
         @CurrentUserId userId: String,
-    ): ResponseEntity<List<Snippet>> {
-        val result = snippetService.getAllSnippets(userId)
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(name = "page_size", defaultValue = "10") pageSize: Int,
+    ): ResponseEntity<GetPaginatedSnippetsResponse> {
+        val result = snippetService.getAllSnippets(userId, page, pageSize)
         return ResponseEntity.ok(result)
     }
 
@@ -80,5 +85,15 @@ class ManagerController(
     ): ResponseEntity<RunSnippetResponse> {
         val output = snippetService.runSnippet(request, userId, userToken)
         return ResponseEntity.ok(output)
+    }
+
+    @DeleteMapping("/{snippetId}")
+    fun deleteSnippet(
+        @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
+        @PathVariable snippetId: String,
+    ): ResponseEntity<String> {
+        snippetService.deleteSnippet(snippetId, userId, userToken)
+        return ResponseEntity.ok("Snippet deleted successfully")
     }
 }
