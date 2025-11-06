@@ -49,6 +49,8 @@ services:
       - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
       - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - REDIS_HOST=event-bus
+      - REDIS_PORT=6379
     depends_on:
       - snippet_manager_db
     networks:
@@ -81,6 +83,8 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE_SNIPPET_ENGINE}
       - AUTH0_DOMAIN=${AUTH0_DOMAIN}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - REDIS_HOST=event-bus
+      - REDIS_PORT=6379
     depends_on:
       - snippet_engine_db
     networks:
@@ -117,6 +121,14 @@ services:
       microservices-network:
         aliases:
           - asset-service
+
+  redis:
+    container_name: "event-bus"
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-network
 
   azurite:
     container_name: "azurite"

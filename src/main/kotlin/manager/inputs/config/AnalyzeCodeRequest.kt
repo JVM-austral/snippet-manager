@@ -1,4 +1,4 @@
-package manager.inputs
+package manager.inputs.config
 
 data class AnalyzeCodeRequest(
     val namingConvention: String = " ",

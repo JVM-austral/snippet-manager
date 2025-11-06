@@ -13,7 +13,7 @@ import manager.repository.format.FormatConfigConverter
 data class FormatConfigEntity(
     @Id
     val userId: String,
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "TEXT")
     @Convert(converter = FormatConfigConverter::class)
     var config: FormatConfig,
 )

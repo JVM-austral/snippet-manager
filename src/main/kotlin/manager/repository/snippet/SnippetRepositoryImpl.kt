@@ -1,5 +1,6 @@
 package manager.repository.snippet
 
+import manager.entity.CompilantState
 import manager.entity.Languages
 import manager.entity.Snippet
 import org.springframework.data.repository.findByIdOrNull
@@ -62,6 +63,15 @@ class SnippetRepositoryImpl(
     ) {
         val snippet = jpaRepository.findByIdOrNull(snippetId) ?: throw Exception("Snippet not found")
         snippet.bucketId = newBucketId
+        jpaRepository.save(snippet)
+    }
+
+    override fun setSnippetState(
+        snippetId: String,
+        state: CompilantState,
+    ) {
+        val snippet = jpaRepository.findByIdOrNull(snippetId) ?: throw Exception("Snippet not found")
+        snippet.state = state
         jpaRepository.save(snippet)
     }
 }

@@ -21,4 +21,5 @@ data class Snippet(
     var bucketId: String,
     var userId: String,
     var creationDate: LocalDateTime = LocalDateTime.now(),
+    var state: CompilantState = CompilantState.PENDING,
 )

@@ -1,0 +1,204 @@
+package manager.service.engine
+
+import manager.inputs.snippet.ParseRequest
+import manager.inputs.snippet.RunSnippetInEngineRequest
+import manager.outputs.snippet.RunSnippetResponse
+import manager.service.Auth0Service
+import manager.service.engine.inputs.TestInput
+import manager.service.engine.response.ParseResponse
+import manager.service.engine.response.TestResponse
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.RestClient
+import org.springframework.web.server.ResponseStatusException
+
+@Service
+class EngineService(
+    private val auth0Service: Auth0Service,
+) {
+    fun validateSnippet(
+        path: String,
+        version: String,
+        language: String,
+    ): List<String> {
+        val m2mToken = auth0Service.getM2MToken()
+
+        val client =
+            RestClient
+                .builder()
+                .baseUrl("http://snippet-engine-service:8080")
+                .build()
+
+        try {
+            val parseResponse: ParseResponse =
+                client
+                    .post()
+                    .uri("/engine/parse")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
+                    .body(
+                        ParseRequest(
+                            assetPath = path,
+                            language = language,
+                            version = version,
+                        ),
+                    ).retrieve()
+                    .body(ParseResponse::class.java)
+                    ?: throw ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Parser service returned empty response",
+                    )
+            return parseResponse.parseErrors
+        } catch (e: HttpClientErrorException.BadRequest) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Snippet validation failed: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Parser service error: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpServerErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Parser service unavailable: ${e.message}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error calling parser service: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    fun runSnippet(
+        path: String,
+        version: String,
+        language: String,
+        inputs: List<String>,
+    ): RunSnippetResponse {
+        val m2mToken = auth0Service.getM2MToken()
+
+        val client =
+            RestClient
+                .builder()
+                .baseUrl("http://snippet-engine-service:8080")
+                .build()
+
+        try {
+            val executeResponse: RunSnippetResponse =
+                client
+                    .post()
+                    .uri("/engine/execute")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
+                    .body(
+                        RunSnippetInEngineRequest(
+                            assetPath = path,
+                            language = language,
+                            version = version,
+                            varInputs = inputs,
+                        ),
+                    ).retrieve()
+                    .body(RunSnippetResponse::class.java)
+                    ?: throw ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Runner service returned empty response",
+                    )
+            return executeResponse
+        } catch (e: HttpClientErrorException.BadRequest) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Snippet validation failed: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Runner service error: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpServerErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Runner service unavailable: ${e.message}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error calling Runner service: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    fun runTest(
+        language: String,
+        version: String,
+        assetPath: String,
+        varInputs: List<String>,
+        expectedOutputs: List<String>,
+    ) : TestResponse {
+        val m2mToken = auth0Service.getM2MToken()
+
+        val client =
+            RestClient
+                .builder()
+                .baseUrl("http://snippet-engine-service:8080")
+                .build()
+
+        try {
+            val executeResponse: TestResponse =
+                client
+                    .post()
+                    .uri("/engine/test")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
+                    .body(
+                        TestInput(
+                            assetPath = assetPath,
+                            language = language,
+                            version = version,
+                            varInputs = varInputs,
+                            expectedOutputs = expectedOutputs,
+                        ),
+                    ).retrieve()
+                    .body(TestResponse::class.java)
+                    ?: throw ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Testing service returned empty response",
+                    )
+            return executeResponse
+        } catch (e: HttpClientErrorException.BadRequest) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Snippet Testing failed: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Testing service error: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpServerErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Testing service unavailable: ${e.message}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error calling Testing service: ${e.message}",
+                e,
+            )
+        }
+    }
+}

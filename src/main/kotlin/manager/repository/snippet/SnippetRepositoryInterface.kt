@@ -1,5 +1,6 @@
 package manager.repository.snippet
 
+import manager.entity.CompilantState
 import manager.entity.Snippet
 
 interface SnippetRepositoryInterface {
@@ -27,5 +28,10 @@ interface SnippetRepositoryInterface {
     fun updateBucketIdForSnippets(
         snippetId: String,
         newBucketId: String,
+    )
+
+    fun setSnippetState(
+        snippetId: String,
+        state: CompilantState,
     )
 }

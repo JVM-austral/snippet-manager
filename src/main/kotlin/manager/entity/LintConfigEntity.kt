@@ -13,7 +13,7 @@ import manager.repository.lint.LintConfigConverter
 data class LintConfigEntity(
     @Id
     val userId: String,
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "TEXT")
     @Convert(converter = LintConfigConverter::class)
     var config: LintConfig,
 )
