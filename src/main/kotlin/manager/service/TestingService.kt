@@ -3,7 +3,8 @@ package manager.service
 import manager.entity.Snippet
 import manager.entity.TestEntity
 import manager.inputs.testing.CreateTestRequest
-import manager.inputs.testing.RunTestRequest
+import manager.inputs.testing.EditTestRequest
+import manager.inputs.testing.IdTestRequest
 import manager.repository.snippet.SnippetRepositoryInterface
 import manager.repository.testing.TestingRepositoryInterface
 import manager.service.engine.EngineService
@@ -41,7 +42,7 @@ class TestingService(
     }
 
     fun runTest(
-        request: RunTestRequest,
+        request: IdTestRequest,
         userId: String,
         userToken: String,
     ): String {
@@ -66,6 +67,61 @@ class TestingService(
         } else {
             return "Test failed."
         }
+    }
+
+    fun deleteTest(
+        request: IdTestRequest,
+        userId: String,
+        userToken: String,
+    ) {
+        val test = validateTestExists(request.testId)
+        val snippet = validateSnippetExists(test.snippetId)
+
+        authorizationService.checkWritePermises(
+            token = userToken,
+            userId = userId,
+            snippetId = snippet.id,
+        )
+        testingRepository.deleteTest(request.testId)
+    }
+
+    fun editTest(
+        request: EditTestRequest,
+        userId: String,
+        userToken: String,
+    ) {
+        val test = validateTestExists(request.testId)
+        val snippet = validateSnippetExists(test.snippetId)
+
+        if (test.snippetId != request.snippetId) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot change snippetId of the test")
+        }
+
+        authorizationService.checkWritePermises(
+            token = userToken,
+            userId = userId,
+            snippetId = snippet.id,
+        )
+        testingRepository.updateTest(
+            testId = request.testId,
+            name = request.name,
+            input = request.input,
+            output = request.output,
+        )
+    }
+
+    fun getAllTestsBySnippetId(
+        snippetId: String,
+        userId: String,
+        userToken: String,
+    ): List<TestEntity> {
+        validateSnippetExists(snippetId)
+        authorizationService.checkReadPermises(
+            token = userToken,
+            userId = userId,
+            snippetId = snippetId,
+        )
+        return testingRepository.getAllTestsBySnippetId(snippetId)
     }
 
     private fun validateSnippetExists(snippetId: String): Snippet {

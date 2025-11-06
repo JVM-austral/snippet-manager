@@ -1,5 +1,5 @@
 package manager.inputs.testing
 
-data class RunTestRequest(
+data class IdTestRequest(
     val testId: String,
 )
