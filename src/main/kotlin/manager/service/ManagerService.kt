@@ -76,15 +76,6 @@ class ManagerService(
     ): CreateSnippetResponse {
         authorizationService.checkWritePermises(userToken, userId, request.snippetId)
         val snippet = validateSnippetExists(request.snippetId)
-
-        val errors = engineService.validateSnippet(snippet.bucketId, request.version, request.language)
-        if (errors.isNotEmpty()) {
-            return CreateSnippetResponse(
-                snippetId = request.snippetId,
-                errorMessage = errors,
-            )
-        }
-
         val updatedSnippetId =
             snippetRepository.updateSnippet(
                 snippetId = request.snippetId,
@@ -94,9 +85,25 @@ class ManagerService(
                 version = request.version,
             )
         saveOrUpdateSnippetInBucket(updatedSnippetId, request.snippet, userId)
+
+        val errors = engineService.validateSnippet(snippet.bucketId, request.version, request.language)
+        if (errors.isNotEmpty()) {
+            snippetRepository.setSnippetState(
+                snippetId = updatedSnippetId,
+                state = CompilantState.NON_COMPILANT,
+            )
+            return CreateSnippetResponse(
+                snippetId = updatedSnippetId,
+                errorMessage = errors,
+            )
+        }
+        snippetRepository.setSnippetState(
+            snippetId = updatedSnippetId,
+            state = CompilantState.COMPILANT,
+        )
         return CreateSnippetResponse(
             snippetId = updatedSnippetId,
-            errorMessage = emptyList(),
+            errorMessage = errors,
         )
     }
 

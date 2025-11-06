@@ -6,8 +6,6 @@ import org.hibernate.validator.constraints.UUID
 data class CreateTestRequest(
     @field:NotBlank
     @field:UUID
-    val id: String,
-    @field:NotBlank
     var snippetId: String,
     @field:NotBlank
     var name: String,

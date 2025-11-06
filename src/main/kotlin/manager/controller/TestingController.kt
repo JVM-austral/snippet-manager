@@ -3,6 +3,7 @@ package manager.controller
 import jakarta.validation.Valid
 import manager.common.interceptor.CurrentUserToken
 import manager.inputs.testing.CreateTestRequest
+import manager.inputs.testing.RunTestRequest
 import manager.security.CurrentUserId
 import manager.service.TestingService
 import org.springframework.http.ResponseEntity
@@ -30,9 +31,9 @@ class TestingController(
     fun runTest(
         @CurrentUserId userId: String,
         @CurrentUserToken userToken: String,
-        @Valid @RequestBody request: CreateTestRequest,
+        @Valid @RequestBody request: RunTestRequest,
     ): ResponseEntity<String> {
-        val result = testService.createTest(request, userId, userToken)
+        val result = testService.runTest(request, userId, userToken)
         return ResponseEntity.ok(result)
     }
 }
