@@ -14,8 +14,16 @@ FROM eclipse-temurin:21-jdk-jammy AS runtime
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y curl && \
+    curl -O https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip && \
+    apt-get install -y unzip && \
+    unzip newrelic-java.zip && \
+    rm newrelic-java.zip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /home/gradle/src/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/newrelic/newrelic.jar", "-jar", "app.jar"]
