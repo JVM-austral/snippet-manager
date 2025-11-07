@@ -1,17 +1,17 @@
-package manager.service
+package manager.service.asset
 
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
 @Service
-class AssetService {
+class AssetService: AssetServiceInterface {
     private val restClient =
         RestClient
             .builder()
             .baseUrl("http://asset-service:8080")
             .build()
 
-    fun createAsset(
+    override fun createAsset(
         container: String,
         key: String,
         data: String,
@@ -31,7 +31,7 @@ class AssetService {
         }
     }
 
-    fun getAsset(
+    override fun getAsset(
         container: String,
         key: String,
     ): String {
@@ -45,7 +45,7 @@ class AssetService {
         return response.body ?: throw RuntimeException("Asset no encontrado")
     }
 
-    fun deleteAsset(
+    override fun deleteAsset(
         container: String,
         key: String,
     ): String {

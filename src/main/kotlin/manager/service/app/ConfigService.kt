@@ -1,4 +1,4 @@
-package manager.service
+package manager.service.app
 
 import manager.inputs.config.AnalyzeCodeRequest
 import manager.inputs.config.FormatCodeRequest

@@ -1,4 +1,4 @@
-package manager.service
+package manager.service.authorization
 
 import manager.inputs.snippet.PermissionRequest
 import manager.outputs.snippet.CheckPermisesResponse
@@ -11,8 +11,8 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.server.ResponseStatusException
 
 @Service
-class AuthorizationService {
-    fun grantReadPermises(
+class AuthorizationService: AuthorizationServiceInterface {
+    override fun grantReadPermises(
         token: String,
         userId: String,
         snippetId: String,
@@ -52,7 +52,7 @@ class AuthorizationService {
         }
     }
 
-    fun grantWritePermises(
+    override fun grantWritePermises(
         token: String,
         userId: String,
         snippetId: String,
@@ -92,7 +92,7 @@ class AuthorizationService {
         }
     }
 
-    fun checkWritePermises(
+    override fun checkWritePermises(
         token: String,
         userId: String,
         snippetId: String,
@@ -140,7 +140,7 @@ class AuthorizationService {
         }
     }
 
-    fun checkReadPermises(
+    override fun checkReadPermises(
         token: String,
         userId: String,
         snippetId: String,

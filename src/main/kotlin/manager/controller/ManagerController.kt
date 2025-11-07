@@ -11,7 +11,7 @@ import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
 import manager.outputs.snippet.RunSnippetResponse
 import manager.security.CurrentUserId
-import manager.service.ManagerService
+import manager.service.app.ManagerService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

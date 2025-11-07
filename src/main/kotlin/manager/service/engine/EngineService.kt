@@ -3,7 +3,7 @@ package manager.service.engine
 import manager.inputs.snippet.ParseRequest
 import manager.inputs.snippet.RunSnippetInEngineRequest
 import manager.outputs.snippet.RunSnippetResponse
-import manager.service.Auth0Service
+import manager.service.oauth.Auth0Service
 import manager.service.engine.inputs.TestInput
 import manager.service.engine.response.ParseResponse
 import manager.service.engine.response.TestResponse
@@ -18,8 +18,8 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class EngineService(
     private val auth0Service: Auth0Service,
-) {
-    fun validateSnippet(
+): EngineServiceInterface {
+    override fun validateSnippet(
         path: String,
         version: String,
         language: String,
@@ -78,7 +78,7 @@ class EngineService(
         }
     }
 
-    fun runSnippet(
+    override fun runSnippet(
         path: String,
         version: String,
         language: String,
@@ -139,7 +139,7 @@ class EngineService(
         }
     }
 
-    fun runTest(
+    override fun runTest(
         language: String,
         version: String,
         assetPath: String,

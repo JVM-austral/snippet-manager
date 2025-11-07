@@ -1,4 +1,4 @@
-package manager.service
+package manager.service.app
 
 import manager.entity.CompilantState
 import manager.entity.Languages
@@ -14,19 +14,21 @@ import manager.outputs.snippet.RunSnippetResponse
 import manager.outputs.snippet.SnippetResponse
 import manager.repository.snippet.SnippetRepositoryInterface
 import manager.repository.snippet.deleted.DeletedSnippetRepositoryInterface
-import manager.service.engine.EngineService
+import manager.service.asset.AssetServiceInterface
+import manager.service.authorization.AuthorizationServiceInterface
+import manager.service.engine.EngineServiceInterface
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import java.util.Locale.getDefault
+import java.util.Locale
 import java.util.UUID
 
 @Service
 class ManagerService(
     private val snippetRepository: SnippetRepositoryInterface,
-    private val assetService: AssetService,
-    private val authorizationService: AuthorizationService,
-    private val engineService: EngineService,
+    private val assetService: AssetServiceInterface,
+    private val authorizationService: AuthorizationServiceInterface,
+    private val engineService: EngineServiceInterface,
     private val deletedSnippetRepository: DeletedSnippetRepositoryInterface,
 ) {
     fun createSnippet(
@@ -38,7 +40,7 @@ class ManagerService(
         val result =
             snippetRepository.saveSnippet(
                 bucketId = "",
-                language = request.language.uppercase(getDefault()),
+                language = request.language.uppercase(Locale.getDefault()),
                 name = request.name,
                 description = request.description,
                 version = request.version,
@@ -85,7 +87,7 @@ class ManagerService(
             snippetRepository.updateSnippet(
                 snippetId = request.snippetId,
                 name = request.name,
-                language = request.language.uppercase(getDefault()),
+                language = request.language.uppercase(Locale.getDefault()),
                 description = request.description,
                 version = request.version,
             )
@@ -154,7 +156,7 @@ class ManagerService(
                     language = snippet.language.name,
                     version = snippet.version,
                     author = snippet.userId,
-                    compliance= snippet.state.name,
+                    compliance = snippet.state.name,
                 ),
             )
         }
@@ -268,7 +270,10 @@ class ManagerService(
             } ?: throw ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid language: $language")
 
         if (version !in lang.versions) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not supported version: $version for language: $language")
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Not supported version: $version for language: $language"
+            )
         }
     }
 

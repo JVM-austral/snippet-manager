@@ -7,7 +7,7 @@ import manager.inputs.testing.CreateTestRequest
 import manager.inputs.testing.EditTestRequest
 import manager.inputs.testing.IdTestRequest
 import manager.security.CurrentUserId
-import manager.service.TestingService
+import manager.service.app.TestingService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

@@ -5,7 +5,7 @@ import manager.inputs.config.AnalyzeCodeRequest
 import manager.inputs.config.FormatCodeRequest
 import manager.redis.FormatStreamProducer
 import manager.security.CurrentUserId
-import manager.service.ConfigService
+import manager.service.app.ConfigService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

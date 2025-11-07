@@ -1,4 +1,4 @@
-package manager.service
+package manager.service.app
 
 import manager.entity.Snippet
 import manager.entity.TestEntity
@@ -7,7 +7,8 @@ import manager.inputs.testing.EditTestRequest
 import manager.inputs.testing.IdTestRequest
 import manager.repository.snippet.SnippetRepositoryInterface
 import manager.repository.testing.TestingRepositoryInterface
-import manager.service.engine.EngineService
+import manager.service.authorization.AuthorizationServiceInterface
+import manager.service.engine.EngineServiceInterface
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -16,8 +17,8 @@ import org.springframework.web.server.ResponseStatusException
 class TestingService(
     private val snippetRepository: SnippetRepositoryInterface,
     private val testingRepository: TestingRepositoryInterface,
-    private val engineService: EngineService,
-    private val authorizationService: AuthorizationService,
+    private val engineService: EngineServiceInterface,
+    private val authorizationService: AuthorizationServiceInterface,
 ) {
     fun createTest(
         request: CreateTestRequest,
