@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
 @Service
-class AssetService: AssetServiceInterface {
+class AssetService : AssetServiceInterface {
     private val restClient =
         RestClient
             .builder()

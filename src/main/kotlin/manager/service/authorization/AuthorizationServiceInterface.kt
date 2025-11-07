@@ -3,7 +3,6 @@ package manager.service.authorization
 import manager.outputs.snippet.SnippetPermisesResponse
 
 interface AuthorizationServiceInterface {
-
     fun grantReadPermises(
         token: String,
         userId: String,

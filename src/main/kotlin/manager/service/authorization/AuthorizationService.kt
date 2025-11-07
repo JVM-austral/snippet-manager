@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.server.ResponseStatusException
 
 @Service
-class AuthorizationService: AuthorizationServiceInterface {
+class AuthorizationService : AuthorizationServiceInterface {
     override fun grantReadPermises(
         token: String,
         userId: String,

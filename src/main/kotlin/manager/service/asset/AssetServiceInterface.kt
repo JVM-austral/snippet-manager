@@ -1,7 +1,6 @@
 package manager.service.asset
 
 interface AssetServiceInterface {
-
     fun createAsset(
         container: String,
         key: String,

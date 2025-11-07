@@ -191,7 +191,6 @@ class ManagerService(
             creationDate = snippet.creationDate.toString(),
             compilantState = snippet.state,
         )
-
     }
 
     private fun validateUUID(id: String) {
@@ -272,7 +271,7 @@ class ManagerService(
         if (version !in lang.versions) {
             throw ResponseStatusException(
                 HttpStatus.FORBIDDEN,
-                "Not supported version: $version for language: $language"
+                "Not supported version: $version for language: $language",
             )
         }
     }

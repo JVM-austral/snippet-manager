@@ -3,7 +3,6 @@ package manager.repository.snippet.deleted
 import manager.entity.CompilantState
 
 interface DeletedSnippetRepositoryInterface {
-
     fun saveDeletedSnippet(
         id: String,
         name: String,
@@ -15,5 +14,4 @@ interface DeletedSnippetRepositoryInterface {
         creationDate: String,
         compilantState: CompilantState = CompilantState.PENDING,
     )
-
 }

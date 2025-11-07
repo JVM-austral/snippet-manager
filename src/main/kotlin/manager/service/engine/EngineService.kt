@@ -3,10 +3,10 @@ package manager.service.engine
 import manager.inputs.snippet.ParseRequest
 import manager.inputs.snippet.RunSnippetInEngineRequest
 import manager.outputs.snippet.RunSnippetResponse
-import manager.service.oauth.Auth0Service
 import manager.service.engine.inputs.TestInput
 import manager.service.engine.response.ParseResponse
 import manager.service.engine.response.TestResponse
+import manager.service.oauth.Auth0Service
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class EngineService(
     private val auth0Service: Auth0Service,
-): EngineServiceInterface {
+) : EngineServiceInterface {
     override fun validateSnippet(
         path: String,
         version: String,
