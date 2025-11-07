@@ -1,4 +1,4 @@
-package manager.outputs
+package manager.outputs.snippet
 
 data class SnippetPermisesResponse(
     val id: String,

@@ -1,7 +1,7 @@
-package manager.inputs
+package manager.inputs.snippet
 
 data class ParseRequest(
-    val code: String,
+    val assetPath: String,
     val language: String,
     val version: String,
 )

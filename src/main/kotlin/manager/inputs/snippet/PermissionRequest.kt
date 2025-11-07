@@ -1,4 +1,4 @@
-package manager.inputs
+package manager.inputs.snippet
 
 data class PermissionRequest(
     val userId: String,

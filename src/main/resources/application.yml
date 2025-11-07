@@ -4,6 +4,10 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME_SNIPPET_MANAGER}
     password: ${SPRING_DATASOURCE_PASSWORD_SNIPPET_MANAGER}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
   jpa:
     hibernate:
@@ -17,3 +21,6 @@ auth0:
   client-secret: ${AUTH0_CLIENT_SECRET}
   domain: ${AUTH0_DOMAIN}
   audience: ${AUTH0_AUDIENCE}
+
+stream:
+  formatter: "format-stream"

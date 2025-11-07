@@ -1,11 +1,9 @@
-package manager.inputs
+package manager.inputs.snippet
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-data class UpdateSnippetRequest(
-    @field:NotBlank
-    val snippetId: String,
+data class CreateSnippetRequest(
     @field:NotBlank
     @field:Size(min = 3, max = 50)
     val name: String,

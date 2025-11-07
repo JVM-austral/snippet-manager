@@ -1,5 +1,6 @@
-package manager.repository
+package manager.repository.snippet
 
+import manager.entity.CompilantState
 import manager.entity.Snippet
 
 interface SnippetRepositoryInterface {
@@ -16,12 +17,33 @@ interface SnippetRepositoryInterface {
 
     fun getAllSnippetsByUserId(userId: String): List<Snippet>
 
+    fun getPaginatedSnippetsByUserId(
+        userId: String,
+        page: Int,
+        pageSize: Int,
+    ): List<Snippet>
+
+    fun countSnippetsByUserId(userId: String): Int
+
     fun updateSnippet(
         snippetId: String,
         name: String?,
-        bucketId: String?,
         language: String?,
         description: String?,
         version: String?,
     ): String
+
+    fun updateBucketIdForSnippets(
+        snippetId: String,
+        newBucketId: String,
+    )
+
+    fun setSnippetState(
+        snippetId: String,
+        state: CompilantState,
+    )
+
+    fun deleteSnippet(
+        snippetId: String,
+    )
 }
