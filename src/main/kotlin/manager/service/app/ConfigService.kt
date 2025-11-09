@@ -123,16 +123,19 @@ class ConfigService(
         return lintConfigEntity
     }
 
-    fun createFormatRequest(userId: String, request: FormatUniqueInput): AnalyzeUniqueInput {
-        val config = try {
-            getFormatConfigForUser(userId)
-        } catch (e: Exception) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Format config for user: $userId not found")
-        }
+    fun createFormatRequest(
+        userId: String,
+        request: FormatUniqueInput,
+    ): AnalyzeUniqueInput {
+        val config =
+            try {
+                getFormatConfigForUser(userId)
+            } catch (e: Exception) {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Format config for user: $userId not found")
+            }
         val snippet = snippetRepository.getSnippetById(request.snippetId)
-        if(snippet === null) {
+        if (snippet === null) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $request.snippetId")
-
         }
         return AnalyzeUniqueInput(
             code = request.code,
@@ -141,5 +144,4 @@ class ConfigService(
             config = config,
         )
     }
-
 }

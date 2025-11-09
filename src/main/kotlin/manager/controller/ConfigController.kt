@@ -63,7 +63,7 @@ class ConfigController(
         @CurrentUserId userId: String,
         @Valid @RequestBody request: FormatUniqueInput,
     ): ResponseEntity<String> {
-        val formatRequest = configService.createFormatRequest( userId = userId, request = request )
+        val formatRequest = configService.createFormatRequest(userId = userId, request = request)
         val formatted = engineService.formatUnique(formatRequest)
         return ResponseEntity.ok(formatted)
     }

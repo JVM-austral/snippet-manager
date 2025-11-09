@@ -1,10 +1,8 @@
 package manager.service.engine
 
-import com.fasterxml.jackson.databind.JsonNode
 import manager.inputs.snippet.ParseRequest
 import manager.inputs.snippet.RunSnippetInEngineRequest
 import manager.outputs.snippet.RunSnippetResponse
-import manager.repository.format.FormatConfig
 import manager.service.engine.inputs.AnalyzeUniqueInput
 import manager.service.engine.inputs.TestInput
 import manager.service.engine.response.ParseResponse
@@ -22,7 +20,6 @@ import org.springframework.web.server.ResponseStatusException
 class EngineService(
     private val auth0Service: Auth0Service,
 ) : EngineServiceInterface {
-
     override fun validateSnippet(
         path: String,
         version: String,
@@ -214,7 +211,7 @@ class EngineService(
                 .builder()
                 .baseUrl("http://snippet-engine-service:8080")
                 .build()
-        try{
+        try {
             val formatResponse: String =
                 client
                     .post()
@@ -226,7 +223,7 @@ class EngineService(
                             version = input.version,
                             config = input.config,
                             code = input.code,
-                        )
+                        ),
                     ).retrieve()
                     .body(String::class.java) ?: throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -259,5 +256,4 @@ class EngineService(
             )
         }
     }
-
 }

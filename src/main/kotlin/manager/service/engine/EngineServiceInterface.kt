@@ -1,7 +1,5 @@
 package manager.service.engine
 
-import com.fasterxml.jackson.databind.JsonNode
-import jakarta.validation.constraints.NotBlank
 import manager.outputs.snippet.RunSnippetResponse
 import manager.service.engine.inputs.AnalyzeUniqueInput
 import manager.service.engine.response.TestResponse
@@ -29,7 +27,6 @@ interface EngineServiceInterface {
     ): TestResponse
 
     fun formatUnique(
-        input: AnalyzeUniqueInput
+        input: AnalyzeUniqueInput,
     ): String
-
 }
