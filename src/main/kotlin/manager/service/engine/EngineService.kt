@@ -3,6 +3,7 @@ package manager.service.engine
 import manager.inputs.snippet.ParseRequest
 import manager.inputs.snippet.RunSnippetInEngineRequest
 import manager.outputs.snippet.RunSnippetResponse
+import manager.service.engine.inputs.AnalyzeUniqueInput
 import manager.service.engine.inputs.TestInput
 import manager.service.engine.response.ParseResponse
 import manager.service.engine.response.TestResponse
@@ -197,6 +198,60 @@ class EngineService(
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Error calling Testing service: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    override fun formatUnique(input: AnalyzeUniqueInput): String {
+        val m2mToken = auth0Service.getM2MToken()
+
+        val client =
+            RestClient
+                .builder()
+                .baseUrl("http://snippet-engine-service:8080")
+                .build()
+        try {
+            val formatResponse: String =
+                client
+                    .post()
+                    .uri("/engine/format")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
+                    .body(
+                        AnalyzeUniqueInput(
+                            language = input.language,
+                            version = input.version,
+                            config = input.config,
+                            code = input.code,
+                        ),
+                    ).retrieve()
+                    .body(String::class.java) ?: throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Formatting service returned empty response",
+                )
+            return formatResponse
+        } catch (e: HttpClientErrorException.BadRequest) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Snippet formatting failed: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Formatting service error: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpServerErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Formatting service unavailable: ${e.message}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error calling Formatting service: ${e.message}",
                 e,
             )
         }

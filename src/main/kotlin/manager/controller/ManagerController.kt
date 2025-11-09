@@ -2,6 +2,7 @@ package manager.controller
 
 import jakarta.validation.Valid
 import manager.common.interceptor.CurrentUserToken
+import manager.entity.Snippet
 import manager.inputs.snippet.CreateSnippetRequest
 import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/snippets")
 class ManagerController(
-    private val snippetService: ManagerService,
+    private val managerService: ManagerService,
 ) {
     @PostMapping
     fun createSnippet(
@@ -34,7 +35,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: CreateSnippetRequest,
     ): ResponseEntity<CreateSnippetResponse> {
-        val result = snippetService.createSnippet(request, userId, userToken)
+        val result = managerService.createSnippet(request, userId, userToken)
         return ResponseEntity.ok(result)
     }
 
@@ -44,7 +45,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: UpdateSnippetRequest,
     ): ResponseEntity<CreateSnippetResponse> {
-        val result = snippetService.updateSnippet(request, userId, userToken)
+        val result = managerService.updateSnippet(request, userId, userToken)
         return ResponseEntity.ok(result)
     }
 
@@ -53,7 +54,7 @@ class ManagerController(
         @CurrentUserId userId: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<SnippetResponse> {
-        val result = snippetService.getSnippet(snippetId, userId)
+        val result = managerService.getSnippet(snippetId, userId)
         return ResponseEntity.ok(result)
     }
 
@@ -63,7 +64,7 @@ class ManagerController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(name = "page_size", defaultValue = "10") pageSize: Int,
     ): ResponseEntity<GetPaginatedSnippetsResponse> {
-        val result = snippetService.getAllSnippets(userId, page, pageSize)
+        val result = managerService.getAllSnippets(userId, page, pageSize)
         return ResponseEntity.ok(result)
     }
 
@@ -73,7 +74,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: ShareSnippetRequest,
     ): ResponseEntity<String> {
-        snippetService.shareSnippet(request, userId, userToken)
+        managerService.shareSnippet(request, userId, userToken)
         return ResponseEntity.ok("Snippet shared successfully")
     }
 
@@ -83,7 +84,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: RunSnippetRequest,
     ): ResponseEntity<RunSnippetResponse> {
-        val output = snippetService.runSnippet(request, userId, userToken)
+        val output = managerService.runSnippet(request, userId, userToken)
         return ResponseEntity.ok(output)
     }
 
@@ -93,7 +94,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<String> {
-        snippetService.deleteSnippet(snippetId, userId, userToken)
+        managerService.deleteSnippet(snippetId, userId, userToken)
         return ResponseEntity.ok("Snippet deleted successfully")
     }
 }

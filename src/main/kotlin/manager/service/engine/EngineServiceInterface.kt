@@ -1,6 +1,7 @@
 package manager.service.engine
 
 import manager.outputs.snippet.RunSnippetResponse
+import manager.service.engine.inputs.AnalyzeUniqueInput
 import manager.service.engine.response.TestResponse
 
 interface EngineServiceInterface {
@@ -24,4 +25,8 @@ interface EngineServiceInterface {
         varInputs: List<String>,
         expectedOutputs: List<String>,
     ): TestResponse
+
+    fun formatUnique(
+        input: AnalyzeUniqueInput,
+    ): String
 }
