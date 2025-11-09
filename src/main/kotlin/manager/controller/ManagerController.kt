@@ -2,7 +2,6 @@ package manager.controller
 
 import jakarta.validation.Valid
 import manager.common.interceptor.CurrentUserToken
-import manager.entity.Snippet
 import manager.inputs.snippet.CreateSnippetRequest
 import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
