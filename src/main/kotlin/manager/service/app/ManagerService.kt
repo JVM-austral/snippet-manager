@@ -117,7 +117,7 @@ class ManagerService(
     fun getSnippet(
         snippetId: String,
         userId: String,
-    ): Snippet {
+    ): SnippetResponse {
         var snippet =
             snippetRepository.getSnippetById(snippetId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
@@ -126,8 +126,16 @@ class ManagerService(
                 userId.substringAfter("|"),
                 snippet.id,
             )
-        snippet.bucketId = code
-        return snippet
+        return SnippetResponse(
+            id = snippet.id,
+            name = snippet.name,
+            description = snippet.description,
+            snippet = code,
+            language = snippet.language.name,
+            version = snippet.version,
+            compliance = snippet.state.name,
+            author = snippet.userId,
+        )
     }
 
     fun getAllSnippets(
@@ -141,14 +149,15 @@ class ManagerService(
         val snippetsList = mutableListOf<SnippetResponse>()
 
         for (snippet in snippets) {
-            val code = try {
-                assetService.getAsset(
-                    userId.substringAfter("|"),
-                    snippet.id,
-                )
-            } catch (e: Exception) {
-                "Unable to retrieve snippet code"
-            }
+            val code =
+                try {
+                    assetService.getAsset(
+                        userId.substringAfter("|"),
+                        snippet.id,
+                    )
+                } catch (e: Exception) {
+                    "Unable to retrieve snippet code"
+                }
 
             snippetsList.add(
                 SnippetResponse(
@@ -160,20 +169,20 @@ class ManagerService(
                     version = snippet.version,
                     author = snippet.userId,
                     compliance = snippet.state.name,
-                )
+                ),
             )
         }
 
         return GetPaginatedSnippetsResponse(
             snippets = snippetsList,
-            pagination = PaginationResponse(
-                page = page,
-                pageSize = pageSize,
-                count = amountOfSnippets,
-            ),
+            pagination =
+                PaginationResponse(
+                    page = page,
+                    pageSize = pageSize,
+                    count = amountOfSnippets,
+                ),
         )
     }
-
 
     fun deleteSnippet(
         snippetId: String,

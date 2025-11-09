@@ -2,7 +2,6 @@ package manager.controller
 
 import jakarta.validation.Valid
 import manager.common.interceptor.CurrentUserToken
-import manager.entity.Snippet
 import manager.inputs.snippet.CreateSnippetRequest
 import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
@@ -10,6 +9,7 @@ import manager.inputs.snippet.UpdateSnippetRequest
 import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
 import manager.outputs.snippet.RunSnippetResponse
+import manager.outputs.snippet.SnippetResponse
 import manager.security.CurrentUserId
 import manager.service.app.ManagerService
 import org.springframework.http.ResponseEntity
@@ -52,7 +52,7 @@ class ManagerController(
     fun getSnippet(
         @CurrentUserId userId: String,
         @PathVariable snippetId: String,
-    ): ResponseEntity<Snippet> {
+    ): ResponseEntity<SnippetResponse> {
         val result = snippetService.getSnippet(snippetId, userId)
         return ResponseEntity.ok(result)
     }
