@@ -57,7 +57,7 @@ class TestingService(
         )
         val response =
             engineService.runTest(
-                assetPath = snippet.bucketId,
+                assetPath = snippet.content,
                 version = snippet.version,
                 language = snippet.language.name,
                 varInputs = test.input,

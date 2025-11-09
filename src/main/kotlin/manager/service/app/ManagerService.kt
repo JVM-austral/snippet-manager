@@ -118,7 +118,7 @@ class ManagerService(
         snippetId: String,
         userId: String,
     ): Snippet {
-        var snippet =
+        val snippet =
             snippetRepository.getSnippetById(snippetId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
         val code =
@@ -236,7 +236,7 @@ class ManagerService(
         userId: String,
     ) {
         try {
-            assetService.createAsset(userId.substringAfter("|"), "$snippetName", snippetContent)
+            assetService.createAsset(userId.substringAfter("|"), snippetName, snippetContent)
         } catch (e: Exception) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,

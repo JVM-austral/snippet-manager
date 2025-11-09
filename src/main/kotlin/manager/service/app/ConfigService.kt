@@ -3,12 +3,16 @@ package manager.service.app
 import manager.inputs.config.AnalyzeCodeRequest
 import manager.inputs.config.FormatCodeRequest
 import manager.inputs.config.FormatForEngineRequest
+import manager.inputs.snippet.FormatUniqueInput
 import manager.repository.format.FormatConfig
 import manager.repository.format.FormatConfigRepositoryInterface
 import manager.repository.lint.LintConfig
 import manager.repository.lint.LintConfigRepositoryInterface
 import manager.repository.snippet.SnippetRepositoryInterface
+import manager.service.engine.inputs.AnalyzeUniqueInput
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 @Service
 class ConfigService(
@@ -95,13 +99,13 @@ class ConfigService(
                     config = formatConfig,
                     language = snippet.language.name,
                     version = snippet.version,
-                    assetPath = snippet.bucketId,
+                    assetPath = snippet.content,
                 )
             }
         return requests
     }
 
-    private fun getFormatConfigForUser(userId: String): FormatConfig {
+    fun getFormatConfigForUser(userId: String): FormatConfig {
         val formatConfigEntity = formatConfigRepository.getFormatConfigForUser(userId)
         if (formatConfigEntity == null) {
             val defaultConfig = FormatConfig()
@@ -118,4 +122,24 @@ class ConfigService(
         }
         return lintConfigEntity
     }
+
+    fun createFormatRequest(userId: String, request: FormatUniqueInput): AnalyzeUniqueInput {
+        val config = try {
+            getFormatConfigForUser(userId)
+        } catch (e: Exception) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Format config for user: $userId not found")
+        }
+        val snippet = snippetRepository.getSnippetById(request.snippetId)
+        if(snippet === null) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $request.snippetId")
+
+        }
+        return AnalyzeUniqueInput(
+            code = request.code,
+            language = snippet.language.name,
+            version = snippet.version,
+            config = config,
+        )
+    }
+
 }
