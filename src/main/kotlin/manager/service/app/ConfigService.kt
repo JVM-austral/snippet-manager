@@ -99,7 +99,7 @@ class ConfigService(
                     config = formatConfig,
                     language = snippet.language.name,
                     version = snippet.version,
-                    assetPath = snippet.content,
+                    assetPath = snippet.bucketId,
                 )
             }
         return requests
