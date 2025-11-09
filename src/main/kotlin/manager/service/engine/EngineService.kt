@@ -215,7 +215,7 @@ class EngineService(
             val formatResponse: String =
                 client
                     .post()
-                    .uri("/engine/test")
+                    .uri("/engine/format")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
                     .body(
                         AnalyzeUniqueInput(
