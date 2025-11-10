@@ -114,7 +114,7 @@ class ConfigService(
         return formatConfigEntity
     }
 
-    private fun getLintConfigForUser(userId: String): LintConfig {
+    public fun getLintConfigForUser(userId: String): LintConfig {
         val lintConfigEntity = lintConfigRepository.getLintConfigForUser(userId)
         if (lintConfigEntity == null) {
             val defaultConfig = LintConfig()
