@@ -6,6 +6,7 @@ import manager.inputs.config.FormatCodeRequest
 import manager.inputs.snippet.FormatUniqueInput
 import manager.redis.FormatStreamProducer
 import manager.repository.format.FormatConfig
+import manager.repository.lint.LintConfig
 import manager.security.CurrentUserId
 import manager.service.app.ConfigService
 import manager.service.engine.EngineService
@@ -50,11 +51,18 @@ class ConfigController(
         return ResponseEntity.ok("Evento publicado con id: $recordId")
     }
 
-    @GetMapping
+    @GetMapping("/format")
     fun getFormatConfig(
         @CurrentUserId userId: String,
     ): ResponseEntity<FormatConfig> {
         val result = configService.getFormatConfigForUser(userId)
+        return ResponseEntity.ok(result)
+    }
+    @GetMapping("/linting")
+    fun getLintingConfig(
+        @CurrentUserId userId: String,
+    ): ResponseEntity<LintConfig> {
+        val result = configService.getLintConfigForUser(userId)
         return ResponseEntity.ok(result)
     }
 
