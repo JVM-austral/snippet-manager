@@ -1,7 +1,9 @@
 package manager.service.engine
 
 import manager.outputs.snippet.RunSnippetResponse
-import manager.service.engine.inputs.AnalyzeUniqueInput
+import manager.service.engine.inputs.FormatUniqueInputForEngine
+import manager.service.engine.inputs.LintUniqueInputForEngine
+import manager.service.engine.response.LintResponse
 import manager.service.engine.response.TestResponse
 
 interface EngineServiceInterface {
@@ -27,6 +29,10 @@ interface EngineServiceInterface {
     ): TestResponse
 
     fun formatUnique(
-        input: AnalyzeUniqueInput,
+        input: FormatUniqueInputForEngine,
     ): String
+
+    fun lintUnique(
+        input: LintUniqueInputForEngine,
+    ): List<LintResponse>
 }

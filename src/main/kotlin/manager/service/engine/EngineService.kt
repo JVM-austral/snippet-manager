@@ -3,11 +3,14 @@ package manager.service.engine
 import manager.inputs.snippet.ParseRequest
 import manager.inputs.snippet.RunSnippetInEngineRequest
 import manager.outputs.snippet.RunSnippetResponse
-import manager.service.engine.inputs.AnalyzeUniqueInput
+import manager.service.engine.inputs.FormatUniqueInputForEngine
+import manager.service.engine.inputs.LintUniqueInputForEngine
 import manager.service.engine.inputs.TestInput
+import manager.service.engine.response.LintResponse
 import manager.service.engine.response.ParseResponse
 import manager.service.engine.response.TestResponse
 import manager.service.oauth.Auth0Service
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -203,7 +206,7 @@ class EngineService(
         }
     }
 
-    override fun formatUnique(input: AnalyzeUniqueInput): String {
+    override fun formatUnique(input: FormatUniqueInputForEngine): String {
         val m2mToken = auth0Service.getM2MToken()
 
         val client =
@@ -218,7 +221,7 @@ class EngineService(
                     .uri("/engine/format")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
                     .body(
-                        AnalyzeUniqueInput(
+                        FormatUniqueInputForEngine(
                             language = input.language,
                             version = input.version,
                             config = input.config,
@@ -252,6 +255,62 @@ class EngineService(
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Error calling Formatting service: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    override fun lintUnique(input: LintUniqueInputForEngine): List<LintResponse> {
+        val m2mToken = auth0Service.getM2MToken()
+
+        val client =
+            RestClient
+                .builder()
+                .baseUrl("http://snippet-engine-service:8080")
+                .build()
+        try {
+            val lintResponse: List<LintResponse> =
+                client
+                    .post()
+                    .uri("/engine/analyze")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
+                    .body(
+                        LintUniqueInputForEngine(
+                            language = input.language,
+                            version = input.version,
+                            config = input.config,
+                            code = input.code,
+                        ),
+                    ).retrieve()
+                    .body(object : ParameterizedTypeReference<List<LintResponse>>() {})
+                    ?: throw ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Linting service returned empty response",
+                    )
+
+            return lintResponse
+        } catch (e: HttpClientErrorException.BadRequest) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Snippet linting failed: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Linting service error: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: HttpServerErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Linting service unavailable: ${e.message}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error calling Linting service: ${e.message}",
                 e,
             )
         }

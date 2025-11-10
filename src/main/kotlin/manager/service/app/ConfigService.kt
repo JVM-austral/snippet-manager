@@ -9,7 +9,7 @@ import manager.repository.format.FormatConfigRepositoryInterface
 import manager.repository.lint.LintConfig
 import manager.repository.lint.LintConfigRepositoryInterface
 import manager.repository.snippet.SnippetRepositoryInterface
-import manager.service.engine.inputs.AnalyzeUniqueInput
+import manager.service.engine.inputs.FormatUniqueInputForEngine
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -24,17 +24,17 @@ class ConfigService(
         userId: String,
         request: AnalyzeCodeRequest,
     ) {
+        checkLintingRules(request)
         val lintConfigEntity = lintConfigRepository.getLintConfigForUser(userId)
         if (lintConfigEntity == null) {
-            val newConfig =
-                lintConfigRepository.saveLintConfigForUser(
-                    userId,
-                    LintConfig(
-                        namingConvention = request.namingConvention,
-                        usePrintlnAnalyzer = request.usePrintlnAnalyzer,
-                        useReadInputAnalyzer = request.useReadInputAnalyzer,
-                    ),
-                )
+            lintConfigRepository.saveLintConfigForUser(
+                userId,
+                LintConfig(
+                    namingConvention = request.namingConvention,
+                    usePrintlnAnalyzer = request.usePrintlnAnalyzer,
+                    useReadInputAnalyzer = request.useReadInputAnalyzer,
+                ),
+            )
         } else {
             lintConfigRepository.editLintConfigForUser(
                 userId,
@@ -51,6 +51,7 @@ class ConfigService(
         userId: String,
         request: FormatCodeRequest,
     ) {
+        checkFormattingRules(request)
         val formatConfigEntity = formatConfigRepository.getFormatConfigForUser(userId)
         if (formatConfigEntity == null) {
             val newConfig =
@@ -126,7 +127,7 @@ class ConfigService(
     fun createFormatRequest(
         userId: String,
         request: FormatUniqueInput,
-    ): AnalyzeUniqueInput {
+    ): FormatUniqueInputForEngine {
         val config =
             try {
                 getFormatConfigForUser(userId)
@@ -137,11 +138,26 @@ class ConfigService(
         if (snippet === null) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $request.snippetId")
         }
-        return AnalyzeUniqueInput(
+        return FormatUniqueInputForEngine(
             code = request.code,
             language = snippet.language.name,
             version = snippet.version,
             config = config,
         )
+    }
+
+    private fun checkLintingRules(config: AnalyzeCodeRequest) {
+        if (config.namingConvention != "camelCase" && config.namingConvention != "snake_case" && config.namingConvention != " ") {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid naming convention: ${config.namingConvention}")
+        }
+    }
+
+    private fun checkFormattingRules(config: FormatCodeRequest) {
+        if (config.enforceNoSpacingAroundEquals && config.enforceSpacingAroundEquals) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Conflicting rules for spacing around equals")
+        }
+        if (config.mandatorySingleSpaceSeparation && config.mandatorySpaceSurroundingOperations) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Conflicting rules for spacing around operations")
+        }
     }
 }

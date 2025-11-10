@@ -1,11 +1,11 @@
 package manager.service.engine.inputs
 
 import jakarta.validation.constraints.NotBlank
-import manager.repository.format.FormatConfig
+import manager.repository.lint.LintConfig
 
-data class AnalyzeUniqueInput(
+data class LintUniqueInputForEngine(
     @field:NotBlank val language: String,
     val version: String,
-    val config: FormatConfig,
+    val config: LintConfig,
     @field:NotBlank val code: String,
 )

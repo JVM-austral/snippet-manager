@@ -9,7 +9,7 @@ import manager.repository.format.FormatConfig
 import manager.repository.lint.LintConfig
 import manager.security.CurrentUserId
 import manager.service.app.ConfigService
-import manager.service.engine.EngineService
+import manager.service.engine.EngineServiceInterface
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 class ConfigController(
     private val configService: ConfigService,
     private val producer: FormatStreamProducer,
-    private val engineService: EngineService,
+    private val engineService: EngineServiceInterface,
 ) {
     @PostMapping("/save-linting")
     fun setLintingConfig(
