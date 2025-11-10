@@ -24,7 +24,7 @@ class TestingController(
     private val testService: TestingService,
 ) {
     @PostMapping("/save")
-    fun createTest(
+    fun createOrUpdateTest(
         @CurrentUserId userId: String,
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: CreateTestRequest,

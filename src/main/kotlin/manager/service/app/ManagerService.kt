@@ -54,22 +54,17 @@ class ManagerService(
 
         val errors = engineService.validateSnippet("/v1/asset/${userId.substringAfter("|")}/$result", request.version, request.language)
 
-        authorizationService.grantWritePermises(userToken, userId, result)
-
-        if (errors.isNotEmpty()) {
-            snippetRepository.setSnippetState(
-                snippetId = result,
-                state = CompilantState.NON_COMPILANT,
-            )
+        if (!errors.isEmpty()) {
+            snippetRepository.deleteSnippet(result)
+            deleteSnippetFromBucket(result, userId)
             return CreateSnippetResponse(
-                snippetId = result,
+                snippetId = "",
                 errorMessage = errors,
             )
         }
-        snippetRepository.setSnippetState(
-            snippetId = result,
-            state = CompilantState.COMPILANT,
-        )
+
+        authorizationService.grantWritePermises(userToken, userId, result)
+
         return CreateSnippetResponse(
             snippetId = result,
             errorMessage = errors,
@@ -260,7 +255,7 @@ class ManagerService(
         userId: String,
     ) {
         try {
-            assetService.deleteAsset(userId, snippetName)
+            assetService.deleteAsset(userId.substringAfter("|"), snippetName)
         } catch (e: Exception) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
