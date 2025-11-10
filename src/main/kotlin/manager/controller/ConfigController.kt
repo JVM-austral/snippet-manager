@@ -58,6 +58,7 @@ class ConfigController(
         val result = configService.getFormatConfigForUser(userId)
         return ResponseEntity.ok(result)
     }
+
     @GetMapping("/linting")
     fun getLintingConfig(
         @CurrentUserId userId: String,
