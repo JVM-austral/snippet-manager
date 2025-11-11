@@ -399,6 +399,7 @@ test:
 
 production:
   <<: *default_settings
+  app_name: 'ManagerService (Production)'
 
 staging:
   <<: *default_settings
