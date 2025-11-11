@@ -31,6 +31,7 @@ class ManagerController(
     private val managerService: ManagerService,
 ) {
     val log = org.slf4j.LoggerFactory.getLogger(ManagerController::class.java)
+
     @PostMapping
     fun createSnippet(
         @CurrentUserId userId: String,
