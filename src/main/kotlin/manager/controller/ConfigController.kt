@@ -26,6 +26,7 @@ class ConfigController(
     private val lintProducer: LintStreamProducer,
     private val engineService: EngineServiceInterface,
 ) {
+
     @PostMapping("/save-linting")
     fun setLintingConfig(
         @CurrentUserId userId: String,
