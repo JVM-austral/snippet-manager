@@ -3,6 +3,7 @@ package manager.service.app
 import manager.inputs.config.AnalyzeCodeRequest
 import manager.inputs.config.FormatCodeRequest
 import manager.inputs.config.FormatForEngineRequest
+import manager.inputs.config.LintForEngineRequest
 import manager.inputs.snippet.FormatUniqueInput
 import manager.repository.format.FormatConfig
 import manager.repository.format.FormatConfigRepositoryInterface
@@ -104,6 +105,22 @@ class ConfigService(
                     language = snippet.language.name,
                     version = snippet.version,
                     assetPath = snippet.bucketId,
+                )
+            }
+        return requests
+    }
+
+    fun getListOfLintRequests(userId: String): List<LintForEngineRequest> {
+        val snippets = snippetRepository.getAllSnippetsByUserId(userId)
+        val lintConfig = getLintConfigForUser(userId)
+        val requests =
+            snippets.map { snippet ->
+                LintForEngineRequest(
+                    config = lintConfig,
+                    language = snippet.language.name,
+                    version = snippet.version,
+                    assetPath = snippet.bucketId,
+                    snippetId = snippet.id,
                 )
             }
         return requests

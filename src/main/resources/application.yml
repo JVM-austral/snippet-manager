@@ -24,3 +24,4 @@ auth0:
 
 stream:
   formatter: "format-stream"
+  linter: "lint-stream"
