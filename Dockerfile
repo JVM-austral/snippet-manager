@@ -14,13 +14,10 @@ FROM eclipse-temurin:21-jdk-jammy AS runtime
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl && \
-    curl -O https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip && \
-    apt-get install -y unzip && \
-    unzip newrelic-java.zip && \
-    rm newrelic-java.zip && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /app/newrelic
+ADD ./newrelic/newrelic.jar /app/newrelic/newrelic.jar
+ADD ./newrelic/newrelic.yml /app/newrelic/newrelic.yml
+
 
 COPY --from=builder /home/gradle/src/build/libs/*.jar app.jar
 
