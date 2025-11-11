@@ -6,6 +6,7 @@ import manager.inputs.snippet.CreateSnippetRequest
 import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
 import manager.inputs.snippet.UpdateSnippetRequest
+import manager.inputs.snippet.UpdateSnippetStateRequest
 import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
 import manager.outputs.snippet.RunSnippetResponse
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -95,5 +97,13 @@ class ManagerController(
     ): ResponseEntity<String> {
         managerService.deleteSnippet(snippetId, userId, userToken)
         return ResponseEntity.ok("Snippet deleted successfully")
+    }
+
+    @PutMapping("/compiling-state")
+    fun changeSnippetState(
+        @Valid @RequestBody request: UpdateSnippetStateRequest,
+    ): ResponseEntity<String> {
+        managerService.changeSnippetState(request)
+        return ResponseEntity.ok("Snippet state updated successfully")
     }
 }

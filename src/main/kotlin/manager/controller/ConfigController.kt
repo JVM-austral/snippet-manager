@@ -5,6 +5,7 @@ import manager.inputs.config.AnalyzeCodeRequest
 import manager.inputs.config.FormatCodeRequest
 import manager.inputs.snippet.FormatUniqueInput
 import manager.redis.FormatStreamProducer
+import manager.redis.LintStreamProducer
 import manager.repository.format.FormatConfig
 import manager.repository.lint.LintConfig
 import manager.security.CurrentUserId
@@ -21,7 +22,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/config")
 class ConfigController(
     private val configService: ConfigService,
-    private val producer: FormatStreamProducer,
+    private val formatProducer: FormatStreamProducer,
+    private val lintProducer: LintStreamProducer,
     private val engineService: EngineServiceInterface,
 ) {
     @PostMapping("/save-linting")
@@ -30,7 +32,9 @@ class ConfigController(
         @Valid @RequestBody request: AnalyzeCodeRequest,
     ): ResponseEntity<String> {
         configService.saveLintingConfig(userId, request)
-        return ResponseEntity.ok("")
+        val requests = configService.getListOfLintRequests(userId)
+        val recordId = lintProducer.emitAll(requests)
+        return ResponseEntity.ok("Evento publicado con id: $recordId")
     }
 
     @PostMapping("/save-formatting")
@@ -39,15 +43,8 @@ class ConfigController(
         @Valid @RequestBody request: FormatCodeRequest,
     ): ResponseEntity<String> {
         configService.saveFormatConfig(userId, request)
-        return ResponseEntity.ok("")
-    }
-
-    @PostMapping("/format")
-    fun createProduct(
-        @CurrentUserId userId: String,
-    ): ResponseEntity<String> {
         val requests = configService.getListOfFormatRequests(userId)
-        val recordId = producer.emitAll(requests)
+        val recordId = formatProducer.emitAll(requests)
         return ResponseEntity.ok("Evento publicado con id: $recordId")
     }
 

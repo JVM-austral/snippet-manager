@@ -7,6 +7,7 @@ import manager.inputs.snippet.CreateSnippetRequest
 import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
 import manager.inputs.snippet.UpdateSnippetRequest
+import manager.inputs.snippet.UpdateSnippetStateRequest
 import manager.outputs.PaginationResponse
 import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
@@ -275,6 +276,16 @@ class ManagerService(
             snippet.version,
             snippet.language.name,
             input.varInputs,
+        )
+    }
+
+    fun changeSnippetState(
+        input: UpdateSnippetStateRequest,
+    ) {
+        validateSnippetExists(input.snippetId)
+        snippetRepository.setSnippetState(
+            snippetId = input.snippetId,
+            state = input.state,
         )
     }
 
