@@ -7,5 +7,5 @@ data class LintUniqueInputForEngine(
     @field:NotBlank val language: String,
     val version: String,
     val config: LintConfig,
-    @field:NotBlank val code: String,
+    @field:NotBlank val assetPath: String,
 )

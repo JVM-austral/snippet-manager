@@ -30,6 +30,7 @@ class ManagerService(
     private val authorizationService: AuthorizationServiceInterface,
     private val engineService: EngineServiceInterface,
     private val deletedSnippetRepository: DeletedSnippetRepositoryInterface,
+    private val configSerivice: ConfigService,
 ) {
     fun createSnippet(
         request: CreateSnippetRequest,
@@ -63,6 +64,26 @@ class ManagerService(
             )
         }
 
+        val lintErrors =
+            configSerivice.lintUniqueWithPath(
+                userId = userId,
+                path = "/v1/asset/${userId.substringAfter("|")}/$result",
+                language = request.language,
+                version = request.version,
+            )
+
+        if (lintErrors.lintErrors.isNotEmpty()) {
+            snippetRepository.setSnippetState(
+                snippetId = result,
+                state = CompilantState.NON_COMPILANT,
+            )
+        } else {
+            snippetRepository.setSnippetState(
+                snippetId = result,
+                state = CompilantState.COMPILANT,
+            )
+        }
+
         authorizationService.grantWritePermises(userToken, userId, result)
 
         return CreateSnippetResponse(
@@ -78,6 +99,45 @@ class ManagerService(
     ): CreateSnippetResponse {
         authorizationService.checkWritePermises(userToken, userId, request.snippetId)
         val snippet = validateSnippetExists(request.snippetId)
+        validateLanguageAndVersion(request.language, request.version)
+        val code =
+            assetService.getAsset(
+                userId.substringAfter("|"),
+                snippet.id,
+            )
+
+        saveOrUpdateSnippetInBucket(snippet.id + "lint", request.snippet, userId)
+        val errors = engineService.validateSnippet("/v1/asset/${userId.substringAfter("|")}/${snippet.id + "lint"}", request.version, request.language)
+        if (errors.isNotEmpty()) {
+            deleteSnippetFromBucket(snippet.id + "lint", userId)
+            return CreateSnippetResponse(
+                snippetId = request.snippetId,
+                errorMessage = errors,
+            )
+        }
+        deleteSnippetFromBucket(snippet.id + "lint", userId)
+        saveOrUpdateSnippetInBucket(snippet.id, request.snippet, userId)
+
+        val lintErrors =
+            configSerivice.lintUniqueWithPath(
+                userId = userId,
+                path = "/v1/asset/${userId.substringAfter("|")}/${snippet.id}",
+                language = request.language,
+                version = request.version,
+            )
+
+        if (lintErrors.lintErrors.isNotEmpty()) {
+            snippetRepository.setSnippetState(
+                snippetId = snippet.id,
+                state = CompilantState.NON_COMPILANT,
+            )
+        } else {
+            snippetRepository.setSnippetState(
+                snippetId = snippet.id,
+                state = CompilantState.COMPILANT,
+            )
+        }
+
         val updatedSnippetId =
             snippetRepository.updateSnippet(
                 snippetId = request.snippetId,
@@ -86,23 +146,7 @@ class ManagerService(
                 description = request.description,
                 version = request.version,
             )
-        saveOrUpdateSnippetInBucket(updatedSnippetId, request.snippet, userId)
 
-        val errors = engineService.validateSnippet(snippet.bucketId, request.version, request.language)
-        if (errors.isNotEmpty()) {
-            snippetRepository.setSnippetState(
-                snippetId = updatedSnippetId,
-                state = CompilantState.NON_COMPILANT,
-            )
-            return CreateSnippetResponse(
-                snippetId = updatedSnippetId,
-                errorMessage = errors,
-            )
-        }
-        snippetRepository.setSnippetState(
-            snippetId = updatedSnippetId,
-            state = CompilantState.COMPILANT,
-        )
         return CreateSnippetResponse(
             snippetId = updatedSnippetId,
             errorMessage = errors,

@@ -3,6 +3,7 @@ package manager.service.engine
 import manager.inputs.snippet.ParseRequest
 import manager.inputs.snippet.RunSnippetInEngineRequest
 import manager.outputs.snippet.RunSnippetResponse
+import manager.repository.lint.LintConfig
 import manager.service.engine.inputs.FormatUniqueInputForEngine
 import manager.service.engine.inputs.LintUniqueInputForEngine
 import manager.service.engine.inputs.TestInput
@@ -10,7 +11,6 @@ import manager.service.engine.response.LintResponse
 import manager.service.engine.response.ParseResponse
 import manager.service.engine.response.TestResponse
 import manager.service.oauth.Auth0Service
-import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -260,7 +260,12 @@ class EngineService(
         }
     }
 
-    override fun lintUnique(input: LintUniqueInputForEngine): List<LintResponse> {
+    override fun lintUnique(
+        config: LintConfig,
+        assetPath: String,
+        language: String,
+        version: String,
+    ): LintResponse {
         val m2mToken = auth0Service.getM2MToken()
 
         val client =
@@ -269,26 +274,26 @@ class EngineService(
                 .baseUrl("http://snippet-engine-service:8080")
                 .build()
         try {
-            val lintResponse: List<LintResponse> =
+            val lintErrorResponses: LintResponse =
                 client
                     .post()
                     .uri("/engine/analyze")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
                     .body(
                         LintUniqueInputForEngine(
-                            language = input.language,
-                            version = input.version,
-                            config = input.config,
-                            code = input.code,
+                            language = language,
+                            version = version,
+                            config = config,
+                            assetPath = assetPath,
                         ),
                     ).retrieve()
-                    .body(object : ParameterizedTypeReference<List<LintResponse>>() {})
+                    .body(LintResponse::class.java)
                     ?: throw ResponseStatusException(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "Linting service returned empty response",
                     )
 
-            return lintResponse
+            return lintErrorResponses
         } catch (e: HttpClientErrorException.BadRequest) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,

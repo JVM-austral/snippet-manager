@@ -9,7 +9,9 @@ import manager.repository.format.FormatConfigRepositoryInterface
 import manager.repository.lint.LintConfig
 import manager.repository.lint.LintConfigRepositoryInterface
 import manager.repository.snippet.SnippetRepositoryInterface
+import manager.service.engine.EngineServiceInterface
 import manager.service.engine.inputs.FormatUniqueInputForEngine
+import manager.service.engine.response.LintResponse
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -19,6 +21,7 @@ class ConfigService(
     private val snippetRepository: SnippetRepositoryInterface,
     private val lintConfigRepository: LintConfigRepositoryInterface,
     private val formatConfigRepository: FormatConfigRepositoryInterface,
+    private val engineService: EngineServiceInterface,
 ) {
     fun saveLintingConfig(
         userId: String,
@@ -128,12 +131,7 @@ class ConfigService(
         userId: String,
         request: FormatUniqueInput,
     ): FormatUniqueInputForEngine {
-        val config =
-            try {
-                getFormatConfigForUser(userId)
-            } catch (e: Exception) {
-                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Format config for user: $userId not found")
-            }
+        val config = getFormatConfigForUser(userId)
         val snippet = snippetRepository.getSnippetById(request.snippetId)
         if (snippet === null) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $request.snippetId")
@@ -159,5 +157,22 @@ class ConfigService(
         if (config.mandatorySingleSpaceSeparation && config.mandatorySpaceSurroundingOperations) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Conflicting rules for spacing around operations")
         }
+    }
+
+    fun lintUniqueWithPath(
+        userId: String,
+        path: String,
+        language: String,
+        version: String,
+    ): LintResponse {
+        val lintConfig = getLintConfigForUser(userId)
+        val lintErrors =
+            engineService.lintUnique(
+                assetPath = path,
+                config = lintConfig,
+                language = language,
+                version = version,
+            )
+        return lintErrors
     }
 }
