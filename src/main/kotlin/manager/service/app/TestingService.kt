@@ -20,26 +20,35 @@ class TestingService(
     private val engineService: EngineServiceInterface,
     private val authorizationService: AuthorizationServiceInterface,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(TestingService::class.java)
+
     fun createTest(
         request: CreateTestRequest,
         userId: String,
         userToken: String,
     ): String {
-        authorizationService.checkWritePermises(
-            token = userToken,
-            userId = userId,
-            snippetId = request.snippetId,
-        )
-        validateSnippetExists(request.snippetId)
-        val testId =
-            testingRepository.saveTest(
+        log.info("Creating test for snippetId: ${request.snippetId} by userId: $userId")
+        try {
+            authorizationService.checkWritePermises(
+                token = userToken,
+                userId = userId,
                 snippetId = request.snippetId,
-                name = request.name,
-                input = request.input,
-                output = request.output,
             )
+            validateSnippetExists(request.snippetId)
+            val testId =
+                testingRepository.saveTest(
+                    snippetId = request.snippetId,
+                    name = request.name,
+                    input = request.input,
+                    output = request.output,
+                )
 
-        return testId
+            log.info("Successfully created test with ID: $testId for snippetId: ${request.snippetId}")
+            return testId
+        } catch (e: Exception) {
+            log.warn("Error creating test for snippetId: ${request.snippetId} - ${e.message}", e)
+            throw e
+        }
     }
 
     fun runTest(
@@ -47,26 +56,34 @@ class TestingService(
         userId: String,
         userToken: String,
     ): String {
-        val test = validateTestExists(request.testId)
-        val snippet = validateSnippetExists(test.snippetId)
+        log.info("Running test with testId: ${request.testId} by userId: $userId")
+        try {
+            val test = validateTestExists(request.testId)
+            val snippet = validateSnippetExists(test.snippetId)
 
-        authorizationService.checkWritePermises(
-            token = userToken,
-            userId = userId,
-            snippetId = snippet.id,
-        )
-        val response =
-            engineService.runTest(
-                assetPath = snippet.bucketId,
-                version = snippet.version,
-                language = snippet.language.name,
-                varInputs = test.input,
-                expectedOutputs = test.output,
+            authorizationService.checkWritePermises(
+                token = userToken,
+                userId = userId,
+                snippetId = snippet.id,
             )
-        if (response.passed) {
-            return "Test passed successfully"
-        } else {
-            return "Test failed."
+            val response =
+                engineService.runTest(
+                    assetPath = snippet.bucketId,
+                    version = snippet.version,
+                    language = snippet.language.name,
+                    varInputs = test.input,
+                    expectedOutputs = test.output,
+                )
+            if (response.passed) {
+                log.info("Test ${request.testId} passed successfully")
+                return "Test passed successfully"
+            } else {
+                log.warn("Test ${request.testId} failed")
+                return "Test failed."
+            }
+        } catch (e: Exception) {
+            log.warn("Error running test ${request.testId} - ${e.message}", e)
+            throw e
         }
     }
 
@@ -75,15 +92,22 @@ class TestingService(
         userId: String,
         userToken: String,
     ) {
-        val test = validateTestExists(request.testId)
-        val snippet = validateSnippetExists(test.snippetId)
+        log.info("Deleting test with testId: ${request.testId} by userId: $userId")
+        try {
+            val test = validateTestExists(request.testId)
+            val snippet = validateSnippetExists(test.snippetId)
 
-        authorizationService.checkWritePermises(
-            token = userToken,
-            userId = userId,
-            snippetId = snippet.id,
-        )
-        testingRepository.deleteTest(request.testId)
+            authorizationService.checkWritePermises(
+                token = userToken,
+                userId = userId,
+                snippetId = snippet.id,
+            )
+            testingRepository.deleteTest(request.testId)
+            log.info("Successfully deleted test ${request.testId}")
+        } catch (e: Exception) {
+            log.warn("Error deleting test ${request.testId} - ${e.message}", e)
+            throw e
+        }
     }
 
     fun editTest(
@@ -91,24 +115,32 @@ class TestingService(
         userId: String,
         userToken: String,
     ) {
-        val test = validateTestExists(request.testId)
-        val snippet = validateSnippetExists(test.snippetId)
+        log.info("Editing test with testId: ${request.testId} by userId: $userId")
+        try {
+            val test = validateTestExists(request.testId)
+            val snippet = validateSnippetExists(test.snippetId)
 
-        if (test.snippetId != request.snippetId) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot change snippetId of the test")
+            if (test.snippetId != request.snippetId) {
+                log.warn("Attempt to change snippetId for test ${request.testId}")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot change snippetId of the test")
+            }
+
+            authorizationService.checkWritePermises(
+                token = userToken,
+                userId = userId,
+                snippetId = snippet.id,
+            )
+            testingRepository.updateTest(
+                testId = request.testId,
+                name = request.name,
+                input = request.input,
+                output = request.output,
+            )
+            log.info("Successfully edited test ${request.testId}")
+        } catch (e: Exception) {
+            log.warn("Error editing test ${request.testId} - ${e.message}", e)
+            throw e
         }
-
-        authorizationService.checkWritePermises(
-            token = userToken,
-            userId = userId,
-            snippetId = snippet.id,
-        )
-        testingRepository.updateTest(
-            testId = request.testId,
-            name = request.name,
-            input = request.input,
-            output = request.output,
-        )
     }
 
     fun getAllTestsBySnippetId(
@@ -116,13 +148,21 @@ class TestingService(
         userId: String,
         userToken: String,
     ): List<TestEntity> {
-        validateSnippetExists(snippetId)
-        authorizationService.checkReadPermises(
-            token = userToken,
-            userId = userId,
-            snippetId = snippetId,
-        )
-        return testingRepository.getAllTestsBySnippetId(snippetId)
+        log.info("Getting all tests for snippetId: $snippetId by userId: $userId")
+        try {
+            validateSnippetExists(snippetId)
+            authorizationService.checkReadPermises(
+                token = userToken,
+                userId = userId,
+                snippetId = snippetId,
+            )
+            val tests = testingRepository.getAllTestsBySnippetId(snippetId)
+            log.info("Retrieved ${tests.size} tests for snippetId: $snippetId")
+            return tests
+        } catch (e: Exception) {
+            log.warn("Error getting tests for snippetId: $snippetId - ${e.message}", e)
+            throw e
+        }
     }
 
     private fun validateSnippetExists(snippetId: String): Snippet {

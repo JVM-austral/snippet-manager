@@ -23,13 +23,17 @@ import org.springframework.web.bind.annotation.RestController
 class TestingController(
     private val testService: TestingService,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(TestingController::class.java)
+
     @PostMapping("/save")
     fun createOrUpdateTest(
         @CurrentUserId userId: String,
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: CreateTestRequest,
     ): ResponseEntity<String> {
+        log.info("Received createOrUpdateTest request from userId: $userId for snippetId: ${request.snippetId}")
         val result = testService.createTest(request, userId, userToken)
+        log.info("Test created with ID: $result for userId: $userId")
         return ResponseEntity.ok(result)
     }
 
@@ -39,7 +43,9 @@ class TestingController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: IdTestRequest,
     ): ResponseEntity<String> {
+        log.info("Received runTest request from userId: $userId for testId: ${request.testId}")
         val result = testService.runTest(request, userId, userToken)
+        log.info("Test executed for testId: ${request.testId} by userId: $userId")
         return ResponseEntity.ok(result)
     }
 
@@ -49,7 +55,9 @@ class TestingController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: IdTestRequest,
     ): ResponseEntity<String> {
+        log.info("Received deleteTest request from userId: $userId for testId: ${request.testId}")
         testService.deleteTest(request, userId, userToken)
+        log.info("Test deleted with ID: ${request.testId} by userId: $userId")
         return ResponseEntity.ok("Test deleted successfully")
     }
 
@@ -59,7 +67,9 @@ class TestingController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: EditTestRequest,
     ): ResponseEntity<String> {
+        log.info("Received updateTest request from userId: $userId for testId: ${request.testId}")
         testService.editTest(request, userId, userToken)
+        log.info("Test updated with ID: ${request.testId} by userId: $userId")
         return ResponseEntity.ok("Test updated successfully")
     }
 
@@ -69,7 +79,9 @@ class TestingController(
         @CurrentUserToken userToken: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<List<TestEntity>> {
+        log.info("Received getAllTestsForSnippet request from userId: $userId for snippetId: $snippetId")
         val response = testService.getAllTestsBySnippetId(snippetId, userId, userToken)
+        log.info("Retrieved ${response.size} tests for snippetId: $snippetId by userId: $userId")
         return ResponseEntity.ok(response)
     }
 }
