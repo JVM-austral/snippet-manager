@@ -11,6 +11,7 @@ import manager.inputs.snippet.UpdateSnippetStateRequest
 import manager.outputs.PaginationResponse
 import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
+import manager.outputs.snippet.LanguagesResponse
 import manager.outputs.snippet.RunSnippetResponse
 import manager.outputs.snippet.SnippetResponse
 import manager.repository.snippet.SnippetRepositoryInterface
@@ -361,12 +362,19 @@ class ManagerService(
         }
     }
 
-    fun getSupportedVersions(): List<Languages> {
+    fun getSupportedLanguages(): List<LanguagesResponse> {
         log.info("Getting supported versions for all languages")
         try {
-            val supportedVersions = Languages.entries.toList()
-            log.info("Successfully retrieved supported versions for all languages")
-            return supportedVersions
+            val supportedLanguages =
+                Languages.entries.map {
+                    LanguagesResponse(
+                        displayName = it.displayName,
+                        versions = it.versions,
+                        extension = it.extension,
+                    )
+                }
+            log.info("Successfully retrieved supported language names")
+            return supportedLanguages
         } catch (e: Exception) {
             log.warn("Error getting supported versions - ${e.message}", e)
             throw e
