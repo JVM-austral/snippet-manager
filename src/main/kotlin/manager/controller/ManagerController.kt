@@ -2,6 +2,7 @@ package manager.controller
 
 import jakarta.validation.Valid
 import manager.common.interceptor.CurrentUserToken
+import manager.entity.Languages
 import manager.inputs.snippet.CreateSnippetRequest
 import manager.inputs.snippet.RunSnippetRequest
 import manager.inputs.snippet.ShareSnippetRequest
@@ -123,5 +124,13 @@ class ManagerController(
         managerService.changeSnippetState(request)
         log.info("Updated snippet state for snippetId: ${request.snippetId}")
         return ResponseEntity.ok("Snippet state updated successfully")
+    }
+
+    @GetMapping("/languages")
+    fun getSupportedLanguages(): ResponseEntity<List<Languages>> {
+        log.info("Received getSupportedVersions request")
+        val result = managerService.getSupportedVersions()
+        log.info("Returned supported versions")
+        return ResponseEntity.ok(result)
     }
 }

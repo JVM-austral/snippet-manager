@@ -361,6 +361,18 @@ class ManagerService(
         }
     }
 
+    fun getSupportedVersions(): List<Languages> {
+        log.info("Getting supported versions for all languages")
+        try {
+            val supportedVersions = Languages.entries.toList()
+            log.info("Successfully retrieved supported versions for all languages")
+            return supportedVersions
+        } catch (e: Exception) {
+            log.warn("Error getting supported versions - ${e.message}", e)
+            throw e
+        }
+    }
+
     private fun saveOrUpdateSnippetInBucket(
         snippetName: String,
         snippetContent: String,
