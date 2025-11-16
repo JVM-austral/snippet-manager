@@ -95,17 +95,15 @@ class ManagerService(
                 )
             }
 
-            val persistedData = getSnippet(result, userId)
-
             authorizationService.grantWritePermises(userToken, userId, result)
             log.info("Successfully created snippet with ID: $result for userId: $userId")
 
             return CreateSnippetResponse(
                 snippetId = result,
-                name = persistedData.name,
-                description = persistedData.description,
-                language = persistedData.language,
-                version = persistedData.version,
+                name = request.name,
+                description = request.description,
+                language = request.language.uppercase(),
+                version = request.version,
                 errorMessage = errors,
             )
         } catch (e: Exception) {
