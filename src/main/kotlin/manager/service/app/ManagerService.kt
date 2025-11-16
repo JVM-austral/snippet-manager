@@ -227,14 +227,16 @@ class ManagerService(
     ): GetPaginatedSnippetsResponse {
         log.info("Getting all snippets for userId: $userId (page: $page, pageSize: $pageSize)")
         try {
-            val snippets = snippetRepository.getPaginatedSnippetsByUserId(userId, page, pageSize)
-            val amountOfSnippets = snippetRepository.countSnippetsByUserId(userId)
+            val (snippets, amountOfSnippets) =
+                if (filter.isNullOrBlank()) {
+                    val list = snippetRepository.getPaginatedSnippetsByUserId(userId, page, pageSize)
+                    Pair(list, snippetRepository.countSnippetsByUserId(userId))
+                } else {
+                    val list = snippetRepository.getPaginatedSnippetsByUserIdAndFilter(userId, page, pageSize, filter)
+                    Pair(list, snippetRepository.countSnippetsByUserIdWithFilter(userId, filter))
+                }
 
             val snippetsList = mutableListOf<SnippetResponse>()
-
-            if (filter != null) {
-                snippets.filter { it.name.contains(filter, ignoreCase = true) }
-            }
 
             for (snippet in snippets) {
                 val code =
