@@ -73,9 +73,10 @@ class ManagerController(
         @CurrentUserId userId: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(name = "page_size", defaultValue = "10") pageSize: Int,
+        @RequestParam(required = false) filter: String?,
     ): ResponseEntity<GetPaginatedSnippetsResponse> {
         log.info("Received getAllSnippets request from userId: $userId with page: $page and pageSize: $pageSize")
-        val result = managerService.getAllSnippets(userId, page, pageSize)
+        val result = managerService.getAllSnippets(userId, page, pageSize, filter)
         log.info("Fetched ${result.snippets.size} snippets for userId: $userId")
         return ResponseEntity.ok(result)
     }

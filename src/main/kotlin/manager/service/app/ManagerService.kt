@@ -95,11 +95,17 @@ class ManagerService(
                 )
             }
 
+            val persistedData = getSnippet(result, userId)
+
             authorizationService.grantWritePermises(userToken, userId, result)
             log.info("Successfully created snippet with ID: $result for userId: $userId")
 
             return CreateSnippetResponse(
                 snippetId = result,
+                name = persistedData.name,
+                description = persistedData.description,
+                language = persistedData.language,
+                version = persistedData.version,
                 errorMessage = errors,
             )
         } catch (e: Exception) {
@@ -185,7 +191,7 @@ class ManagerService(
     ): SnippetResponse {
         log.info("Getting snippet $snippetId for userId: $userId")
         try {
-            var snippet =
+            val snippet =
                 snippetRepository.getSnippetById(snippetId)
                     ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
             val code =
@@ -217,6 +223,7 @@ class ManagerService(
         userId: String,
         page: Int,
         pageSize: Int,
+        filter: String? = null,
     ): GetPaginatedSnippetsResponse {
         log.info("Getting all snippets for userId: $userId (page: $page, pageSize: $pageSize)")
         try {
@@ -224,6 +231,10 @@ class ManagerService(
             val amountOfSnippets = snippetRepository.countSnippetsByUserId(userId)
 
             val snippetsList = mutableListOf<SnippetResponse>()
+
+            if (filter != null) {
+                snippets.filter { it.name.contains(filter, ignoreCase = true) }
+            }
 
             for (snippet in snippets) {
                 val code =
