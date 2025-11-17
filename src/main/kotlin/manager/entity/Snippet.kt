@@ -20,6 +20,7 @@ data class Snippet(
     var version: String,
     var bucketId: String,
     var userId: String,
+    var author: String,
     var creationDate: LocalDateTime = LocalDateTime.now(),
     var state: CompilantState = CompilantState.PENDING,
 )

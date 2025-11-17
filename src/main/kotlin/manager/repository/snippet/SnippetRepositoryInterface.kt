@@ -11,6 +11,7 @@ interface SnippetRepositoryInterface {
         description: String,
         version: String,
         userId: String,
+        author: String,
     ): String
 
     fun getSnippetById(snippetId: String): Snippet?

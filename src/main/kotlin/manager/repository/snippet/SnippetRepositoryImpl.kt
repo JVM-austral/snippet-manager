@@ -18,6 +18,7 @@ class SnippetRepositoryImpl(
         description: String,
         version: String,
         userId: String,
+        author: String,
     ): String {
         val snippet =
             Snippet(
@@ -27,6 +28,7 @@ class SnippetRepositoryImpl(
                 version = version,
                 bucketId = bucketId,
                 userId = userId,
+                author = author,
             )
 
         jpaRepository.save(snippet)

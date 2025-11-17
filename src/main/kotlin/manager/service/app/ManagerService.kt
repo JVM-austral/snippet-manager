@@ -19,6 +19,7 @@ import manager.repository.snippet.deleted.DeletedSnippetRepositoryInterface
 import manager.service.asset.AssetServiceInterface
 import manager.service.authorization.AuthorizationServiceInterface
 import manager.service.engine.EngineServiceInterface
+import manager.service.oauth.Auth0Service
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -33,6 +34,7 @@ class ManagerService(
     private val engineService: EngineServiceInterface,
     private val deletedSnippetRepository: DeletedSnippetRepositoryInterface,
     private val configSerivice: ConfigService,
+    private val auth0Service: Auth0Service,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(ManagerService::class.java)
 
@@ -44,6 +46,9 @@ class ManagerService(
         log.info("Creating snippet for userId: $userId with name: ${request.name}")
         try {
             validateLanguageAndVersion(request.language, request.version)
+            val username = auth0Service.getUserName(userId)
+            log.info("Successfully retrieved username for userId: $userId")
+
             val result =
                 snippetRepository.saveSnippet(
                     bucketId = "",
@@ -52,6 +57,7 @@ class ManagerService(
                     description = request.description,
                     version = request.version,
                     userId = userId,
+                    author = username,
                 )
             log.info("Snippet saved with ID: $result for userId: $userId")
 
@@ -105,6 +111,7 @@ class ManagerService(
                 language = request.language.uppercase(),
                 version = request.version,
                 errorMessage = errors,
+                author = username,
             )
         } catch (e: Exception) {
             log.warn("Error creating snippet for userId: $userId - ${e.message}", e)
@@ -206,7 +213,7 @@ class ManagerService(
                 language = snippet.language.name,
                 version = snippet.version,
                 compliance = snippet.state.name,
-                author = snippet.userId,
+                author = snippet.author,
             )
         } catch (e: ResponseStatusException) {
             log.warn("Snippet not found: $snippetId for userId: $userId")
@@ -256,7 +263,7 @@ class ManagerService(
                         snippet = code,
                         language = snippet.language.name,
                         version = snippet.version,
-                        author = snippet.userId,
+                        author = snippet.author,
                         compliance = snippet.state.name,
                     ),
                 )

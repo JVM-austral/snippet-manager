@@ -21,6 +21,9 @@ auth0:
   client-secret: ${AUTH0_CLIENT_SECRET}
   domain: ${AUTH0_DOMAIN}
   audience: ${AUTH0_AUDIENCE}
+  management-api:
+    audience: ${AUTH0_MANAGEMENT_API_AUDIENCE}
+
 
 stream:
   formatter: "format-stream"
