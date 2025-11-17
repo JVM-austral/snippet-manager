@@ -184,13 +184,13 @@ class ConfigService(
         userId: String,
         request: FormatUniqueInput,
     ): FormatUniqueInputForEngine {
-        log.info("Creating format request for userId: $userId, snippetId: ${request.snippetId}")
+        log.info("Creating format request for userId: $userId, id: ${request.snippetId}")
         try {
             val config = getFormatConfigForUser(userId)
             val snippet = snippetRepository.getSnippetById(request.snippetId)
             if (snippet === null) {
                 log.warn("Snippet not found with id: ${request.snippetId} for userId: $userId")
-                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $request.snippetId")
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $request.id")
             }
             return FormatUniqueInputForEngine(
                 code = request.code,

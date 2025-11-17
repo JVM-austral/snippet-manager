@@ -68,7 +68,7 @@ class ManagerService(
                 snippetRepository.deleteSnippet(result)
                 deleteSnippetFromBucket(result, userId)
                 return CreateSnippetResponse(
-                    snippetId = "",
+                    id = "",
                     errorMessage = errors,
                 )
             }
@@ -99,7 +99,7 @@ class ManagerService(
             log.info("Successfully created snippet with ID: $result for userId: $userId")
 
             return CreateSnippetResponse(
-                snippetId = result,
+                id = result,
                 name = request.name,
                 description = request.description,
                 language = request.language.uppercase(),
@@ -134,7 +134,7 @@ class ManagerService(
                 log.warn("Validation errors for snippet update ${request.snippetId}: $errors")
                 deleteSnippetFromBucket(snippet.id + "lint", userId)
                 return CreateSnippetResponse(
-                    snippetId = request.snippetId,
+                    id = request.snippetId,
                     errorMessage = errors,
                 )
             }
@@ -174,7 +174,7 @@ class ManagerService(
 
             log.info("Successfully updated snippet $updatedSnippetId for userId: $userId")
             return CreateSnippetResponse(
-                snippetId = updatedSnippetId,
+                id = updatedSnippetId,
                 errorMessage = errors,
             )
         } catch (e: Exception) {
@@ -359,7 +359,7 @@ class ManagerService(
     fun changeSnippetState(
         input: UpdateSnippetStateRequest,
     ) {
-        log.info("Changing snippet state for snippetId: ${input.snippetId} to state: ${input.state}")
+        log.info("Changing snippet state for id: ${input.snippetId} to state: ${input.state}")
         try {
             validateSnippetExists(input.snippetId)
             snippetRepository.setSnippetState(

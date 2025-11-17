@@ -27,7 +27,7 @@ class TestingService(
         userId: String,
         userToken: String,
     ): String {
-        log.info("Creating test for snippetId: ${request.snippetId} by userId: $userId")
+        log.info("Creating test for id: ${request.snippetId} by userId: $userId")
         try {
             authorizationService.checkWritePermises(
                 token = userToken,
@@ -43,10 +43,10 @@ class TestingService(
                     output = request.output,
                 )
 
-            log.info("Successfully created test with ID: $testId for snippetId: ${request.snippetId}")
+            log.info("Successfully created test with ID: $testId for id: ${request.snippetId}")
             return testId
         } catch (e: Exception) {
-            log.warn("Error creating test for snippetId: ${request.snippetId} - ${e.message}", e)
+            log.warn("Error creating test for id: ${request.snippetId} - ${e.message}", e)
             throw e
         }
     }
@@ -121,8 +121,8 @@ class TestingService(
             val snippet = validateSnippetExists(test.snippetId)
 
             if (test.snippetId != request.snippetId) {
-                log.warn("Attempt to change snippetId for test ${request.testId}")
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot change snippetId of the test")
+                log.warn("Attempt to change id for test ${request.testId}")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot change id of the test")
             }
 
             authorizationService.checkWritePermises(
@@ -148,7 +148,7 @@ class TestingService(
         userId: String,
         userToken: String,
     ): List<TestEntity> {
-        log.info("Getting all tests for snippetId: $snippetId by userId: $userId")
+        log.info("Getting all tests for id: $snippetId by userId: $userId")
         try {
             validateSnippetExists(snippetId)
             authorizationService.checkReadPermises(
@@ -157,10 +157,10 @@ class TestingService(
                 snippetId = snippetId,
             )
             val tests = testingRepository.getAllTestsBySnippetId(snippetId)
-            log.info("Retrieved ${tests.size} tests for snippetId: $snippetId")
+            log.info("Retrieved ${tests.size} tests for id: $snippetId")
             return tests
         } catch (e: Exception) {
-            log.warn("Error getting tests for snippetId: $snippetId - ${e.message}", e)
+            log.warn("Error getting tests for id: $snippetId - ${e.message}", e)
             throw e
         }
     }

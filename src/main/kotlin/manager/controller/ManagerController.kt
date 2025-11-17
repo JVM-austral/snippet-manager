@@ -41,7 +41,7 @@ class ManagerController(
     ): ResponseEntity<CreateSnippetResponse> {
         log.info("Received createSnippet request: $request from userId: $userId")
         val result = managerService.createSnippet(request, userId, userToken)
-        log.info("Created snippet with ID: ${result.snippetId} for userId: $userId")
+        log.info("Created snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
     }
 
@@ -53,7 +53,7 @@ class ManagerController(
     ): ResponseEntity<CreateSnippetResponse> {
         log.info("Received updateSnippet request: $request from userId: $userId")
         val result = managerService.updateSnippet(request, userId, userToken)
-        log.info("Updated snippet with ID: ${result.snippetId} for userId: $userId")
+        log.info("Updated snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
     }
 
@@ -62,7 +62,7 @@ class ManagerController(
         @CurrentUserId userId: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<SnippetResponse> {
-        log.info("Received getSnippet request for snippetId: $snippetId from userId: $userId")
+        log.info("Received getSnippet request for id: $snippetId from userId: $userId")
         val result = managerService.getSnippet(snippetId, userId)
         log.info("Fetched snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
@@ -111,7 +111,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<String> {
-        log.info("Received deleteSnippet request for snippetId: $snippetId from userId: $userId")
+        log.info("Received deleteSnippet request for id: $snippetId from userId: $userId")
         managerService.deleteSnippet(snippetId, userId, userToken)
         log.info("Deleted snippet with ID: $snippetId for userId: $userId")
         return ResponseEntity.ok("Snippet deleted successfully")
@@ -123,7 +123,7 @@ class ManagerController(
     ): ResponseEntity<String> {
         log.info("Received changeSnippetState request: $request")
         managerService.changeSnippetState(request)
-        log.info("Updated snippet state for snippetId: ${request.snippetId}")
+        log.info("Updated snippet state for id: ${request.snippetId}")
         return ResponseEntity.ok("Snippet state updated successfully")
     }
 
