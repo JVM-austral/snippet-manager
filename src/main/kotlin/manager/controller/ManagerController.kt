@@ -61,9 +61,10 @@ class ManagerController(
     fun getSnippet(
         @CurrentUserId userId: String,
         @PathVariable snippetId: String,
-    ): ResponseEntity<SnippetResponse> {
+        @CurrentUserToken userToken: String,
+        ): ResponseEntity<SnippetResponse> {
         log.info("Received getSnippet request for id: $snippetId from userId: $userId")
-        val result = managerService.getSnippet(snippetId, userId)
+        val result = managerService.getSnippet(snippetId, userId, userToken)
         log.info("Fetched snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
     }
@@ -71,12 +72,13 @@ class ManagerController(
     @GetMapping
     fun getAllSnippets(
         @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(name = "page_size", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false) filter: String?,
     ): ResponseEntity<GetPaginatedSnippetsResponse> {
         log.info("Received getAllSnippets request from userId: $userId with page: $page and pageSize: $pageSize")
-        val result = managerService.getAllSnippets(userId, page, pageSize, filter)
+        val result = managerService.getAllSnippets(userId, userToken, page, pageSize, filter)
         log.info("Fetched ${result.snippets.size} snippets for userId: $userId")
         return ResponseEntity.ok(result)
     }

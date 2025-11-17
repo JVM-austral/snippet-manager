@@ -24,7 +24,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.Locale
-import java.util.UUID
 
 @Service
 class ManagerService(
@@ -193,15 +192,17 @@ class ManagerService(
     fun getSnippet(
         snippetId: String,
         userId: String,
+        token: String
     ): SnippetResponse {
         log.info("Getting snippet $snippetId for userId: $userId")
         try {
+            authorizationService.checkReadPermises(token, userId, snippetId)
             val snippet =
                 snippetRepository.getSnippetById(snippetId)
                     ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
             val code =
                 assetService.getAsset(
-                    userId.substringAfter("|"),
+                    snippet.userId.substringAfter("|"),
                     snippet.id,
                 )
             log.info("Successfully retrieved snippet $snippetId for userId: $userId")
@@ -226,6 +227,7 @@ class ManagerService(
 
     fun getAllSnippets(
         userId: String,
+        token: String,
         page: Int,
         pageSize: Int,
         filter: String? = null,
@@ -268,6 +270,8 @@ class ManagerService(
                     ),
                 )
             }
+            val sharedSnippets = (getSharedSnippets(userId, token))
+            snippetsList.addAll(sharedSnippets)
 
             log.info("Successfully retrieved ${snippetsList.size} snippets for userId: $userId")
             return GetPaginatedSnippetsResponse(
@@ -276,7 +280,7 @@ class ManagerService(
                     PaginationResponse(
                         page = page,
                         pageSize = pageSize,
-                        count = amountOfSnippets,
+                        count = amountOfSnippets + sharedSnippets.size,
                     ),
             )
         } catch (e: Exception) {
@@ -310,14 +314,6 @@ class ManagerService(
         } catch (e: Exception) {
             log.warn("Error deleting snippet $snippetId for userId: $userId - ${e.message}", e)
             throw e
-        }
-    }
-
-    private fun validateUUID(id: String) {
-        try {
-            UUID.fromString(id)
-        } catch (e: IllegalArgumentException) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid UUID format")
         }
     }
 
@@ -454,5 +450,42 @@ class ManagerService(
             snippetRepository.getSnippetById(snippetId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
         return snippet
+    }
+
+    private fun getSharedSnippets(
+        userId: String,
+        token: String,
+    ): List<SnippetResponse> {
+        val snippetIds = authorizationService.getSharedSnippets(token, userId)
+        var snippetList = mutableListOf<SnippetResponse>()
+        for (snippetId in snippetIds) {
+            validateSnippetExists(snippetId)
+            val snippet =
+                snippetRepository.getSnippetById(snippetId)
+                    ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
+            val code =
+                try {
+                    assetService.getAsset(
+                        snippet.userId.substringAfter("|"),
+                        snippet.id,
+                    )
+                } catch (e: Exception) {
+                    log.warn("Unable to retrieve code for snippet ${snippet.id}: ${e.message}")
+                    "Unable to retrieve snippet code"
+                }
+            snippetList.add(
+                SnippetResponse(
+                    id = snippet.id,
+                    name = snippet.name,
+                    description = snippet.description,
+                    snippet = code,
+                    language = snippet.language.name,
+                    version = snippet.version,
+                    compliance = snippet.state.name,
+                    author = snippet.author,
+                ),
+            )
+        }
+        return snippetList
     }
 }
