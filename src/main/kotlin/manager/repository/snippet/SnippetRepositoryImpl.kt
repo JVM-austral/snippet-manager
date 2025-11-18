@@ -56,10 +56,7 @@ class SnippetRepositoryImpl(
         filter: String,
     ): List<Snippet> {
         val pageable = PageRequest.of(page, pageSize)
-        val snippets = jpaRepository.findAllByUserId(userId, pageable).content
-        return snippets.filter {
-            it.name.contains(filter, ignoreCase = true)
-        }
+        return jpaRepository.searchByUserIdAndName(userId, filter, pageable)
     }
 
     override fun countSnippetsByUserIdWithFilter(
