@@ -1,4 +1,4 @@
-package manager.repository.snippet
+package ingsis.manager.repositories
 
 import io.mockk.every
 import io.mockk.mockk
@@ -6,14 +6,16 @@ import io.mockk.verify
 import manager.entity.CompilantState
 import manager.entity.Languages
 import manager.entity.Snippet
+import manager.repository.snippet.SnippetJpaRepository
+import manager.repository.snippet.SnippetRepositoryImpl
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertThrows
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import kotlin.test.assertEquals
 
@@ -121,9 +123,14 @@ class SnippetRepositoryImplTest {
                 Snippet("3", "HELLO AGAIN", "", Languages.PRINTSCRIPT, "V1", "b", "u1", "a"),
             )
 
-        val page: Page<Snippet> = PageImpl(pageContent)
+        val expectedFiltered =
+            pageContent.filter {
+                it.name.contains("hello", ignoreCase = true)
+            }
 
-        every { jpaRepository.findAllByUserId("u1", any()) } returns page
+        every {
+            jpaRepository.searchByUserIdAndName("u1", "hello", any<Pageable>())
+        } returns expectedFiltered
 
         val result = repository.getPaginatedSnippetsByUserIdAndFilter("u1", 0, 10, "hello")
 
