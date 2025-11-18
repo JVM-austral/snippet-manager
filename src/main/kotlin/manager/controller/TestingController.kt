@@ -31,7 +31,7 @@ class TestingController(
         @CurrentUserToken userToken: String,
         @Valid @RequestBody request: CreateTestRequest,
     ): ResponseEntity<String> {
-        log.info("Received createOrUpdateTest request from userId: $userId for snippetId: ${request.snippetId}")
+        log.info("Received createOrUpdateTest request from userId: $userId for id: ${request.snippetId}")
         val result = testService.createTest(request, userId, userToken)
         log.info("Test created with ID: $result for userId: $userId")
         return ResponseEntity.ok(result)
@@ -79,9 +79,9 @@ class TestingController(
         @CurrentUserToken userToken: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<List<TestEntity>> {
-        log.info("Received getAllTestsForSnippet request from userId: $userId for snippetId: $snippetId")
+        log.info("Received getAllTestsForSnippet request from userId: $userId for id: $snippetId")
         val response = testService.getAllTestsBySnippetId(snippetId, userId, userToken)
-        log.info("Retrieved ${response.size} tests for snippetId: $snippetId by userId: $userId")
+        log.info("Retrieved ${response.size} tests for id: $snippetId by userId: $userId")
         return ResponseEntity.ok(response)
     }
 }

@@ -11,6 +11,7 @@ interface SnippetRepositoryInterface {
         description: String,
         version: String,
         userId: String,
+        author: String,
     ): String
 
     fun getSnippetById(snippetId: String): Snippet?
@@ -22,6 +23,18 @@ interface SnippetRepositoryInterface {
         page: Int,
         pageSize: Int,
     ): List<Snippet>
+
+    fun getPaginatedSnippetsByUserIdAndFilter(
+        userId: String,
+        page: Int,
+        pageSize: Int,
+        filter: String,
+    ): List<Snippet>
+
+    fun countSnippetsByUserIdWithFilter(
+        userId: String,
+        filter: String,
+    ): Int
 
     fun countSnippetsByUserId(userId: String): Int
 

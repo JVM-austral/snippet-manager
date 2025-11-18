@@ -18,6 +18,7 @@ class SnippetRepositoryImpl(
         description: String,
         version: String,
         userId: String,
+        author: String,
     ): String {
         val snippet =
             Snippet(
@@ -27,6 +28,7 @@ class SnippetRepositoryImpl(
                 version = version,
                 bucketId = bucketId,
                 userId = userId,
+                author = author,
             )
 
         jpaRepository.save(snippet)
@@ -46,6 +48,24 @@ class SnippetRepositoryImpl(
         val pageable = PageRequest.of(page, pageSize)
         return jpaRepository.findAllByUserId(userId, pageable).content
     }
+
+    override fun getPaginatedSnippetsByUserIdAndFilter(
+        userId: String,
+        page: Int,
+        pageSize: Int,
+        filter: String,
+    ): List<Snippet> {
+        val pageable = PageRequest.of(page, pageSize)
+        val snippets = jpaRepository.findAllByUserId(userId, pageable).content
+        return snippets.filter {
+            it.name.contains(filter, ignoreCase = true)
+        }
+    }
+
+    override fun countSnippetsByUserIdWithFilter(
+        userId: String,
+        filter: String,
+    ): Int = jpaRepository.findAll().count { it.userId == userId && it.name.contains(filter, ignoreCase = true) }
 
     override fun countSnippetsByUserId(userId: String): Int = jpaRepository.findAll().count { it.userId == userId }
 

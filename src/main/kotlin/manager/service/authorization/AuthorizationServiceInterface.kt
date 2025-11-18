@@ -26,4 +26,9 @@ interface AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     )
+
+    fun getSharedSnippets(
+        token: String,
+        userId: String,
+    ): List<String>
 }

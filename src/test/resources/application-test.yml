@@ -1,0 +1,7 @@
+auth0:
+  domain: http://dummy
+  client-id: dummy
+  client-secret: dummy
+  audience: dummy
+  management-api:
+    audience: dummy

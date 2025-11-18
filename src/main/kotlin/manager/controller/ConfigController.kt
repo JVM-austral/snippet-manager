@@ -79,7 +79,7 @@ class ConfigController(
         @CurrentUserId userId: String,
         @Valid @RequestBody request: FormatUniqueInput,
     ): ResponseEntity<String> {
-        log.info("Received formatCode request from userId: $userId for snippetId: ${request.snippetId}")
+        log.info("Received formatCode request from userId: $userId for id: ${request.snippetId}")
         val formatRequest = configService.createFormatRequest(userId = userId, request = request)
         val formatted = engineService.formatUnique(formatRequest)
         log.info("Code formatted successfully for userId: $userId")

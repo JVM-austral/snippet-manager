@@ -4,20 +4,16 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
 @Service
-class AssetService : AssetServiceInterface {
-    private val restClient =
-        RestClient
-            .builder()
-            .baseUrl("http://asset-service:8080")
-            .build()
-
+class AssetService(
+    private val assetRestClient: RestClient,
+) : AssetServiceInterface {
     override fun createAsset(
         container: String,
         key: String,
         data: String,
     ): String {
         val response =
-            restClient
+            assetRestClient
                 .put()
                 .uri("/v1/asset/$container/$key")
                 .body(data)
@@ -36,7 +32,7 @@ class AssetService : AssetServiceInterface {
         key: String,
     ): String {
         val response =
-            restClient
+            assetRestClient
                 .get()
                 .uri("/v1/asset/$container/$key")
                 .retrieve()
@@ -50,7 +46,7 @@ class AssetService : AssetServiceInterface {
         key: String,
     ): String {
         val response =
-            restClient
+            assetRestClient
                 .delete()
                 .uri("/v1/asset/$container/$key")
                 .retrieve()

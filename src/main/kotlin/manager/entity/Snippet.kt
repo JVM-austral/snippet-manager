@@ -12,7 +12,7 @@ import java.util.UUID
 @Table(name = "snippets")
 data class Snippet(
     @Id
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     var name: String,
     var description: String,
     @Enumerated(EnumType.STRING)
@@ -20,6 +20,7 @@ data class Snippet(
     var version: String,
     var bucketId: String,
     var userId: String,
+    var author: String,
     var creationDate: LocalDateTime = LocalDateTime.now(),
     var state: CompilantState = CompilantState.PENDING,
 )

@@ -9,6 +9,7 @@ import manager.inputs.snippet.UpdateSnippetRequest
 import manager.inputs.snippet.UpdateSnippetStateRequest
 import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
+import manager.outputs.snippet.LanguagesResponse
 import manager.outputs.snippet.RunSnippetResponse
 import manager.outputs.snippet.SnippetResponse
 import manager.security.CurrentUserId
@@ -40,7 +41,7 @@ class ManagerController(
     ): ResponseEntity<CreateSnippetResponse> {
         log.info("Received createSnippet request: $request from userId: $userId")
         val result = managerService.createSnippet(request, userId, userToken)
-        log.info("Created snippet with ID: ${result.snippetId} for userId: $userId")
+        log.info("Created snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
     }
 
@@ -52,7 +53,7 @@ class ManagerController(
     ): ResponseEntity<CreateSnippetResponse> {
         log.info("Received updateSnippet request: $request from userId: $userId")
         val result = managerService.updateSnippet(request, userId, userToken)
-        log.info("Updated snippet with ID: ${result.snippetId} for userId: $userId")
+        log.info("Updated snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
     }
 
@@ -60,9 +61,10 @@ class ManagerController(
     fun getSnippet(
         @CurrentUserId userId: String,
         @PathVariable snippetId: String,
+        @CurrentUserToken userToken: String,
     ): ResponseEntity<SnippetResponse> {
-        log.info("Received getSnippet request for snippetId: $snippetId from userId: $userId")
-        val result = managerService.getSnippet(snippetId, userId)
+        log.info("Received getSnippet request for id: $snippetId from userId: $userId")
+        val result = managerService.getSnippet(snippetId, userId, userToken)
         log.info("Fetched snippet with ID: ${result.id} for userId: $userId")
         return ResponseEntity.ok(result)
     }
@@ -70,11 +72,13 @@ class ManagerController(
     @GetMapping
     fun getAllSnippets(
         @CurrentUserId userId: String,
+        @CurrentUserToken userToken: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(name = "page_size", defaultValue = "10") pageSize: Int,
+        @RequestParam(required = false) filter: String?,
     ): ResponseEntity<GetPaginatedSnippetsResponse> {
         log.info("Received getAllSnippets request from userId: $userId with page: $page and pageSize: $pageSize")
-        val result = managerService.getAllSnippets(userId, page, pageSize)
+        val result = managerService.getAllSnippets(userId, userToken, page, pageSize, filter)
         log.info("Fetched ${result.snippets.size} snippets for userId: $userId")
         return ResponseEntity.ok(result)
     }
@@ -109,7 +113,7 @@ class ManagerController(
         @CurrentUserToken userToken: String,
         @PathVariable snippetId: String,
     ): ResponseEntity<String> {
-        log.info("Received deleteSnippet request for snippetId: $snippetId from userId: $userId")
+        log.info("Received deleteSnippet request for id: $snippetId from userId: $userId")
         managerService.deleteSnippet(snippetId, userId, userToken)
         log.info("Deleted snippet with ID: $snippetId for userId: $userId")
         return ResponseEntity.ok("Snippet deleted successfully")
@@ -121,7 +125,15 @@ class ManagerController(
     ): ResponseEntity<String> {
         log.info("Received changeSnippetState request: $request")
         managerService.changeSnippetState(request)
-        log.info("Updated snippet state for snippetId: ${request.snippetId}")
+        log.info("Updated snippet state for id: ${request.snippetId}")
         return ResponseEntity.ok("Snippet state updated successfully")
+    }
+
+    @GetMapping("/languages")
+    fun getSupportedLanguages(): ResponseEntity<List<LanguagesResponse>> {
+        log.info("Received getSupportedVersions request")
+        val result = managerService.getSupportedLanguages()
+        log.info("Returned supported versions")
+        return ResponseEntity.ok(result)
     }
 }

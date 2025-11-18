@@ -11,6 +11,7 @@ import manager.inputs.snippet.UpdateSnippetStateRequest
 import manager.outputs.PaginationResponse
 import manager.outputs.snippet.CreateSnippetResponse
 import manager.outputs.snippet.GetPaginatedSnippetsResponse
+import manager.outputs.snippet.LanguagesResponse
 import manager.outputs.snippet.RunSnippetResponse
 import manager.outputs.snippet.SnippetResponse
 import manager.repository.snippet.SnippetRepositoryInterface
@@ -18,11 +19,11 @@ import manager.repository.snippet.deleted.DeletedSnippetRepositoryInterface
 import manager.service.asset.AssetServiceInterface
 import manager.service.authorization.AuthorizationServiceInterface
 import manager.service.engine.EngineServiceInterface
+import manager.service.oauth.Auth0Service
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.Locale
-import java.util.UUID
 
 @Service
 class ManagerService(
@@ -32,6 +33,7 @@ class ManagerService(
     private val engineService: EngineServiceInterface,
     private val deletedSnippetRepository: DeletedSnippetRepositoryInterface,
     private val configSerivice: ConfigService,
+    private val auth0Service: Auth0Service,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(ManagerService::class.java)
 
@@ -43,6 +45,9 @@ class ManagerService(
         log.info("Creating snippet for userId: $userId with name: ${request.name}")
         try {
             validateLanguageAndVersion(request.language, request.version)
+            val username = auth0Service.getUserName(userId)
+            log.info("Successfully retrieved username for userId: $userId")
+
             val result =
                 snippetRepository.saveSnippet(
                     bucketId = "",
@@ -51,6 +56,7 @@ class ManagerService(
                     description = request.description,
                     version = request.version,
                     userId = userId,
+                    author = username,
                 )
             log.info("Snippet saved with ID: $result for userId: $userId")
 
@@ -67,7 +73,7 @@ class ManagerService(
                 snippetRepository.deleteSnippet(result)
                 deleteSnippetFromBucket(result, userId)
                 return CreateSnippetResponse(
-                    snippetId = "",
+                    id = "",
                     errorMessage = errors,
                 )
             }
@@ -98,8 +104,13 @@ class ManagerService(
             log.info("Successfully created snippet with ID: $result for userId: $userId")
 
             return CreateSnippetResponse(
-                snippetId = result,
+                id = result,
+                name = request.name,
+                description = request.description,
+                language = request.language.uppercase(),
+                version = request.version,
                 errorMessage = errors,
+                author = username,
             )
         } catch (e: Exception) {
             log.warn("Error creating snippet for userId: $userId - ${e.message}", e)
@@ -129,7 +140,7 @@ class ManagerService(
                 log.warn("Validation errors for snippet update ${request.snippetId}: $errors")
                 deleteSnippetFromBucket(snippet.id + "lint", userId)
                 return CreateSnippetResponse(
-                    snippetId = request.snippetId,
+                    id = request.snippetId,
                     errorMessage = errors,
                 )
             }
@@ -169,7 +180,7 @@ class ManagerService(
 
             log.info("Successfully updated snippet $updatedSnippetId for userId: $userId")
             return CreateSnippetResponse(
-                snippetId = updatedSnippetId,
+                id = updatedSnippetId,
                 errorMessage = errors,
             )
         } catch (e: Exception) {
@@ -181,15 +192,17 @@ class ManagerService(
     fun getSnippet(
         snippetId: String,
         userId: String,
+        token: String,
     ): SnippetResponse {
         log.info("Getting snippet $snippetId for userId: $userId")
         try {
-            var snippet =
+            authorizationService.checkReadPermises(token, userId, snippetId)
+            val snippet =
                 snippetRepository.getSnippetById(snippetId)
                     ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
             val code =
                 assetService.getAsset(
-                    userId.substringAfter("|"),
+                    snippet.userId.substringAfter("|"),
                     snippet.id,
                 )
             log.info("Successfully retrieved snippet $snippetId for userId: $userId")
@@ -201,7 +214,7 @@ class ManagerService(
                 language = snippet.language.name,
                 version = snippet.version,
                 compliance = snippet.state.name,
-                author = snippet.userId,
+                author = snippet.author,
             )
         } catch (e: ResponseStatusException) {
             log.warn("Snippet not found: $snippetId for userId: $userId")
@@ -214,13 +227,21 @@ class ManagerService(
 
     fun getAllSnippets(
         userId: String,
+        token: String,
         page: Int,
         pageSize: Int,
+        filter: String? = null,
     ): GetPaginatedSnippetsResponse {
         log.info("Getting all snippets for userId: $userId (page: $page, pageSize: $pageSize)")
         try {
-            val snippets = snippetRepository.getPaginatedSnippetsByUserId(userId, page, pageSize)
-            val amountOfSnippets = snippetRepository.countSnippetsByUserId(userId)
+            val (snippets, amountOfSnippets) =
+                if (filter.isNullOrBlank()) {
+                    val list = snippetRepository.getPaginatedSnippetsByUserId(userId, page, pageSize)
+                    Pair(list, snippetRepository.countSnippetsByUserId(userId))
+                } else {
+                    val list = snippetRepository.getPaginatedSnippetsByUserIdAndFilter(userId, page, pageSize, filter)
+                    Pair(list, snippetRepository.countSnippetsByUserIdWithFilter(userId, filter))
+                }
 
             val snippetsList = mutableListOf<SnippetResponse>()
 
@@ -244,11 +265,13 @@ class ManagerService(
                         snippet = code,
                         language = snippet.language.name,
                         version = snippet.version,
-                        author = snippet.userId,
+                        author = snippet.author,
                         compliance = snippet.state.name,
                     ),
                 )
             }
+            val sharedSnippets = (getSharedSnippets(userId, token))
+            snippetsList.addAll(sharedSnippets)
 
             log.info("Successfully retrieved ${snippetsList.size} snippets for userId: $userId")
             return GetPaginatedSnippetsResponse(
@@ -257,7 +280,7 @@ class ManagerService(
                     PaginationResponse(
                         page = page,
                         pageSize = pageSize,
-                        count = amountOfSnippets,
+                        count = amountOfSnippets + sharedSnippets.size,
                     ),
             )
         } catch (e: Exception) {
@@ -291,14 +314,6 @@ class ManagerService(
         } catch (e: Exception) {
             log.warn("Error deleting snippet $snippetId for userId: $userId - ${e.message}", e)
             throw e
-        }
-    }
-
-    private fun validateUUID(id: String) {
-        try {
-            UUID.fromString(id)
-        } catch (e: IllegalArgumentException) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid UUID format")
         }
     }
 
@@ -347,7 +362,7 @@ class ManagerService(
     fun changeSnippetState(
         input: UpdateSnippetStateRequest,
     ) {
-        log.info("Changing snippet state for snippetId: ${input.snippetId} to state: ${input.state}")
+        log.info("Changing snippet state for id: ${input.snippetId} to state: ${input.state}")
         try {
             validateSnippetExists(input.snippetId)
             snippetRepository.setSnippetState(
@@ -357,6 +372,25 @@ class ManagerService(
             log.info("Successfully changed state for snippet ${input.snippetId}")
         } catch (e: Exception) {
             log.warn("Error changing state for snippet ${input.snippetId} - ${e.message}", e)
+            throw e
+        }
+    }
+
+    fun getSupportedLanguages(): List<LanguagesResponse> {
+        log.info("Getting supported versions for all languages")
+        try {
+            val supportedLanguages =
+                Languages.entries.map {
+                    LanguagesResponse(
+                        displayName = it.displayName,
+                        versions = it.versions,
+                        extension = it.extension,
+                    )
+                }
+            log.info("Successfully retrieved supported language names")
+            return supportedLanguages
+        } catch (e: Exception) {
+            log.warn("Error getting supported versions - ${e.message}", e)
             throw e
         }
     }
@@ -416,5 +450,42 @@ class ManagerService(
             snippetRepository.getSnippetById(snippetId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
         return snippet
+    }
+
+    private fun getSharedSnippets(
+        userId: String,
+        token: String,
+    ): List<SnippetResponse> {
+        val snippetIds = authorizationService.getSharedSnippets(token, userId)
+        var snippetList = mutableListOf<SnippetResponse>()
+        for (snippetId in snippetIds) {
+            validateSnippetExists(snippetId)
+            val snippet =
+                snippetRepository.getSnippetById(snippetId)
+                    ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Snippet not found with id: $snippetId")
+            val code =
+                try {
+                    assetService.getAsset(
+                        snippet.userId.substringAfter("|"),
+                        snippet.id,
+                    )
+                } catch (e: Exception) {
+                    log.warn("Unable to retrieve code for snippet ${snippet.id}: ${e.message}")
+                    "Unable to retrieve snippet code"
+                }
+            snippetList.add(
+                SnippetResponse(
+                    id = snippet.id,
+                    name = snippet.name,
+                    description = snippet.description,
+                    snippet = code,
+                    language = snippet.language.name,
+                    version = snippet.version,
+                    compliance = snippet.state.name,
+                    author = snippet.author,
+                ),
+            )
+        }
+        return snippetList
     }
 }

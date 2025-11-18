@@ -3,6 +3,7 @@ package manager.service.authorization
 import manager.inputs.snippet.PermissionRequest
 import manager.outputs.snippet.CheckPermisesResponse
 import manager.outputs.snippet.SnippetPermisesResponse
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -11,20 +12,17 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.server.ResponseStatusException
 
 @Service
-class AuthorizationService : AuthorizationServiceInterface {
+class AuthorizationService(
+    private val authorizationRestClient: RestClient,
+) : AuthorizationServiceInterface {
     override fun grantReadPermises(
         token: String,
         userId: String,
         snippetId: String,
     ): SnippetPermisesResponse {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
         try {
             val response =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/grant-read-access")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -57,14 +55,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     ): SnippetPermisesResponse {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
         try {
             val response =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/grant-write-access")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -97,15 +90,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     ) {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
-
         try {
             val response: CheckPermisesResponse? =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/validate-write")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -145,15 +132,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     ) {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
-
         try {
             val response: CheckPermisesResponse? =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/validate-read-access")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -183,6 +164,35 @@ class AuthorizationService : AuthorizationServiceInterface {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Error checking read permissions: ${e.message}",
+                e,
+            )
+        }
+    }
+
+    override fun getSharedSnippets(
+        token: String,
+        userId: String,
+    ): List<String> {
+        try {
+            val response =
+                authorizationRestClient
+                    .get()
+                    .uri("/snippet-permissions/shared-snippets/$userId")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .retrieve()
+                    .body(object : ParameterizedTypeReference<List<String>>() {})
+
+            return response ?: emptyList()
+        } catch (e: HttpClientErrorException) {
+            throw ResponseStatusException(
+                HttpStatus.valueOf(e.statusCode.value()),
+                "Error fetching shared snippets: ${e.responseBodyAsString}",
+                e,
+            )
+        } catch (e: Exception) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error fetching shared snippets: ${e.message}",
                 e,
             )
         }
