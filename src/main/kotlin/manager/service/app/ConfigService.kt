@@ -1,5 +1,7 @@
 package manager.service.app
 
+import manager.entity.CompilantState
+import manager.entity.Snippet
 import manager.inputs.config.AnalyzeCodeRequest
 import manager.inputs.config.FormatCodeRequest
 import manager.inputs.config.FormatForEngineRequest
@@ -117,6 +119,7 @@ class ConfigService(
         log.info("Getting list of format requests for userId: $userId")
         try {
             val snippets = snippetRepository.getAllSnippetsByUserId(userId)
+            changeStateToPending(snippets)
             val formatConfig = getFormatConfigForUser(userId)
             val requests =
                 snippets.map { snippet ->
@@ -243,6 +246,12 @@ class ConfigService(
         } catch (e: Exception) {
             log.warn("Error linting snippet at path: $path for userId: $userId - ${e.message}", e)
             throw e
+        }
+    }
+
+    private fun changeStateToPending(snippets: List<Snippet>) {
+        for (snippet in snippets) {
+            snippetRepository.setSnippetState(snippet.id, CompilantState.PENDING)
         }
     }
 }
