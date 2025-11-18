@@ -50,12 +50,6 @@ class EngineService(
                         "Parser service returned empty response",
                     )
             return parseResponse.parseErrors
-        } catch (e: HttpClientErrorException.BadRequest) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Snippet validation failed: ${e.responseBodyAsString}",
-                e,
-            )
         } catch (e: HttpClientErrorException) {
             throw ResponseStatusException(
                 HttpStatus.valueOf(e.statusCode.value()),
@@ -105,12 +99,6 @@ class EngineService(
                         "Runner service returned empty response",
                     )
             return executeResponse
-        } catch (e: HttpClientErrorException.BadRequest) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Snippet validation failed: ${e.responseBodyAsString}",
-                e,
-            )
         } catch (e: HttpClientErrorException) {
             throw ResponseStatusException(
                 HttpStatus.valueOf(e.statusCode.value()),
@@ -161,12 +149,6 @@ class EngineService(
                         "Testing service returned empty response",
                     )
             return executeResponse
-        } catch (e: HttpClientErrorException.BadRequest) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Snippet Testing failed: ${e.responseBodyAsString}",
-                e,
-            )
         } catch (e: HttpClientErrorException) {
             throw ResponseStatusException(
                 HttpStatus.valueOf(e.statusCode.value()),
@@ -210,12 +192,6 @@ class EngineService(
                     "Formatting service returned empty response",
                 )
             return formatResponse
-        } catch (e: HttpClientErrorException.BadRequest) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Snippet formatting failed: ${e.responseBodyAsString}",
-                e,
-            )
         } catch (e: HttpClientErrorException) {
             throw ResponseStatusException(
                 HttpStatus.valueOf(e.statusCode.value()),
@@ -266,12 +242,6 @@ class EngineService(
                     )
 
             return lintErrorResponses
-        } catch (e: HttpClientErrorException.BadRequest) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Snippet linting failed: ${e.responseBodyAsString}",
-                e,
-            )
         } catch (e: HttpClientErrorException) {
             throw ResponseStatusException(
                 HttpStatus.valueOf(e.statusCode.value()),

@@ -12,7 +12,7 @@ import java.util.UUID
 @Table(name = "snippets")
 data class Snippet(
     @Id
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     var name: String,
     var description: String,
     @Enumerated(EnumType.STRING)
