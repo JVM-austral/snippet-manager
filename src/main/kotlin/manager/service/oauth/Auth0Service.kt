@@ -22,8 +22,8 @@ class Auth0Service(
     private val audience: String,
     @Value("\${auth0.management-api.audience}")
     private val managementApiAudience: String,
-) {
-    fun getM2MToken(): String {
+) : Auth0ServiceInterface {
+    override fun getM2MToken(): String {
         val authDomain =
             if (domain.startsWith("http://") || domain.startsWith("https://")) {
                 domain.trimEnd('/')
@@ -67,7 +67,7 @@ class Auth0Service(
         return jsonResponse.get("access_token").asString
     }
 
-    fun getUserName(id: String): String {
+    override fun getUserName(id: String): String {
         val authDomain =
             if (domain.startsWith("http://") || domain.startsWith("https://")) {
                 domain.trimEnd('/')

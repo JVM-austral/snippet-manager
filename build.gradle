@@ -43,7 +43,9 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
 
 }
 
@@ -87,7 +89,7 @@ jacocoTestCoverageVerification {
 	violationRules {
 		rule {
 			limit {
-				minimum = 0.0
+				minimum = 0.6
 			}
 		}
 	}

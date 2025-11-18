@@ -8,7 +8,7 @@ RUN gradle dependencies --no-daemon || true
 
 COPY . .
 
-RUN gradle clean bootJar --no-daemon -x test
+RUN gradle clean bootJar --no-daemon
 
 FROM eclipse-temurin:21-jdk-jammy AS runtime
 

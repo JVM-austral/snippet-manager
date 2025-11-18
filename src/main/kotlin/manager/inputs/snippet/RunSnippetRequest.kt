@@ -1,6 +1,6 @@
 package manager.inputs.snippet
 
-class RunSnippetRequest(
+data class RunSnippetRequest(
     val snippetId: String,
     val varInputs: List<String> = emptyList(),
 )

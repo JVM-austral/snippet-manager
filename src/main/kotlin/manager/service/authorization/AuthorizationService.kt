@@ -12,20 +12,17 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.server.ResponseStatusException
 
 @Service
-class AuthorizationService : AuthorizationServiceInterface {
+class AuthorizationService(
+    private val authorizationRestClient: RestClient,
+) : AuthorizationServiceInterface {
     override fun grantReadPermises(
         token: String,
         userId: String,
         snippetId: String,
     ): SnippetPermisesResponse {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
         try {
             val response =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/grant-read-access")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -58,14 +55,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     ): SnippetPermisesResponse {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
         try {
             val response =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/grant-write-access")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -98,15 +90,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     ) {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
-
         try {
             val response: CheckPermisesResponse? =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/validate-write")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -146,15 +132,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         userId: String,
         snippetId: String,
     ) {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
-
         try {
             val response: CheckPermisesResponse? =
-                authorizationClient
+                authorizationRestClient
                     .post()
                     .uri("/snippet-permissions/validate-read-access")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -193,15 +173,9 @@ class AuthorizationService : AuthorizationServiceInterface {
         token: String,
         userId: String,
     ): List<String> {
-        val authorizationClient: RestClient =
-            RestClient
-                .builder()
-                .baseUrl("http://authorization-service:8080")
-                .build()
-
         try {
             val response =
-                authorizationClient
+                authorizationRestClient
                     .get()
                     .uri("/snippet-permissions/shared-snippets/$userId")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $token")

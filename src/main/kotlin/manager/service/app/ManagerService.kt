@@ -192,7 +192,7 @@ class ManagerService(
     fun getSnippet(
         snippetId: String,
         userId: String,
-        token: String
+        token: String,
     ): SnippetResponse {
         log.info("Getting snippet $snippetId for userId: $userId")
         try {

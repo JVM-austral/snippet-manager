@@ -10,7 +10,7 @@ import manager.service.engine.inputs.TestInput
 import manager.service.engine.response.LintResponse
 import manager.service.engine.response.ParseResponse
 import manager.service.engine.response.TestResponse
-import manager.service.oauth.Auth0Service
+import manager.service.oauth.Auth0ServiceInterface
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -21,7 +21,8 @@ import org.springframework.web.server.ResponseStatusException
 
 @Service
 class EngineService(
-    private val auth0Service: Auth0Service,
+    private val auth0Service: Auth0ServiceInterface,
+    private val engineRestClient: RestClient,
 ) : EngineServiceInterface {
     override fun validateSnippet(
         path: String,
@@ -30,15 +31,9 @@ class EngineService(
     ): List<String> {
         val m2mToken = auth0Service.getM2MToken()
 
-        val client =
-            RestClient
-                .builder()
-                .baseUrl("http://snippet-engine-service:8080")
-                .build()
-
         try {
             val parseResponse: ParseResponse =
-                client
+                engineRestClient
                     .post()
                     .uri("/engine/parse")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
@@ -90,15 +85,9 @@ class EngineService(
     ): RunSnippetResponse {
         val m2mToken = auth0Service.getM2MToken()
 
-        val client =
-            RestClient
-                .builder()
-                .baseUrl("http://snippet-engine-service:8080")
-                .build()
-
         try {
             val executeResponse: RunSnippetResponse =
-                client
+                engineRestClient
                     .post()
                     .uri("/engine/execute")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
@@ -151,16 +140,9 @@ class EngineService(
         expectedOutputs: List<String>,
     ): TestResponse {
         val m2mToken = auth0Service.getM2MToken()
-
-        val client =
-            RestClient
-                .builder()
-                .baseUrl("http://snippet-engine-service:8080")
-                .build()
-
         try {
             val executeResponse: TestResponse =
-                client
+                engineRestClient
                     .post()
                     .uri("/engine/test")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
@@ -209,14 +191,9 @@ class EngineService(
     override fun formatUnique(input: FormatUniqueInputForEngine): String {
         val m2mToken = auth0Service.getM2MToken()
 
-        val client =
-            RestClient
-                .builder()
-                .baseUrl("http://snippet-engine-service:8080")
-                .build()
         try {
             val formatResponse: String =
-                client
+                engineRestClient
                     .post()
                     .uri("/engine/format")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")
@@ -268,14 +245,9 @@ class EngineService(
     ): LintResponse {
         val m2mToken = auth0Service.getM2MToken()
 
-        val client =
-            RestClient
-                .builder()
-                .baseUrl("http://snippet-engine-service:8080")
-                .build()
         try {
             val lintErrorResponses: LintResponse =
-                client
+                engineRestClient
                     .post()
                     .uri("/engine/analyze")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer $m2mToken")

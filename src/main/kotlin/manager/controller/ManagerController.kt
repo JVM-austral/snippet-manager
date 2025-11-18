@@ -62,7 +62,7 @@ class ManagerController(
         @CurrentUserId userId: String,
         @PathVariable snippetId: String,
         @CurrentUserToken userToken: String,
-        ): ResponseEntity<SnippetResponse> {
+    ): ResponseEntity<SnippetResponse> {
         log.info("Received getSnippet request for id: $snippetId from userId: $userId")
         val result = managerService.getSnippet(snippetId, userId, userToken)
         log.info("Fetched snippet with ID: ${result.id} for userId: $userId")
