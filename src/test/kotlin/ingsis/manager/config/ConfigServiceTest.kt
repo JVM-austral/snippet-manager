@@ -1,9 +1,12 @@
 package ingsis.manager.config
 
 import io.mockk.MockKAnnotations
+import io.mockk.Runs
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
 import io.mockk.verify
+import manager.entity.CompilantState
 import manager.entity.Languages
 import manager.entity.Snippet
 import manager.inputs.config.AnalyzeCodeRequest
@@ -262,6 +265,7 @@ class ConfigServiceTest {
 
         every { snippetRepository.getAllSnippetsByUserId(userId) } returns snippets
         every { formatConfigRepository.getFormatConfigForUser(userId) } returns formatConfig
+        every { snippetRepository.setSnippetState(any(), CompilantState.PENDING) } just Runs
 
         val result = configService.getListOfFormatRequests(userId)
 
